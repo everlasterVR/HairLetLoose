@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace everlaster
+namespace HairLetLoose
 {
-    class HairLetLoose : MVRScript
+    internal class Main : MVRScript
     {
         private Transform head;
         private List<HairSimControl> hairSims = new List<HairSimControl>();
@@ -14,19 +14,21 @@ namespace everlaster
 
         //TODO generalize / select from list
         private HairSimControl test;
-        JSONStorableFloat rootRigidity;
-        JSONStorableFloat mainRigidity;
-        JSONStorableFloat tipRigidity;
+
+        private JSONStorableFloat rootRigidity;
+        private JSONStorableFloat mainRigidity;
+        private JSONStorableFloat tipRigidity;
 
         //registered storables
-        JSONStorableFloat minRootRigidity;
-        JSONStorableFloat maxRootRigidity;
-        JSONStorableFloat minMainRigidity;
-        JSONStorableFloat maxMainRigidity;
-        JSONStorableFloat minTipRigidity;
-        JSONStorableFloat maxTipRigidity;
+        private JSONStorableFloat minRootRigidity;
+
+        private JSONStorableFloat maxRootRigidity;
+        private JSONStorableFloat minMainRigidity;
+        private JSONStorableFloat maxMainRigidity;
+        private JSONStorableFloat minTipRigidity;
+        private JSONStorableFloat maxTipRigidity;
         private float baseVal = 0f;
-         
+
 #if SHOW_DEBUG
         protected JSONStorableString baseDebugInfo = new JSONStorableString("Base Debug Info", "");
 #endif
@@ -75,13 +77,13 @@ namespace everlaster
 
         //  slider for how close to upside down until fully at minimum
         //  slider for how close to upright until fully at maximum
-        void InitPluginUILeft()
+        private void InitPluginUILeft()
         {
             JSONStorableString titleUIText = new JSONStorableString("titleText", "");
             UIDynamicTextField titleUITextField = CreateTextField(titleUIText);
             titleUITextField.UItext.fontSize = 36;
             titleUITextField.height = 100;
-            titleUIText.SetVal($"{nameof(HairLetLoose)}\n<size=28>v{pluginVersion}</size>");
+            titleUIText.SetVal($"{nameof(Main)}\n<size=28>v{pluginVersion}</size>");
 
             minRootRigidity = NewRigiditySlider("Min root rigidity");
             NewSpacer(10f);
@@ -96,7 +98,7 @@ namespace everlaster
 #endif
         }
 
-        void InitPluginUIRight()
+        private void InitPluginUIRight()
         {
             NewSpacer(100f, true);
             maxRootRigidity = NewRigiditySlider("Max root rigidity", rootRigidity.val, rightSide: true);
@@ -106,7 +108,7 @@ namespace everlaster
             maxTipRigidity = NewRigiditySlider("Max tip rigidity", tipRigidity.val, rightSide: true);
         }
 
-        JSONStorableFloat NewRigiditySlider(string name, float def = 0f, float min = 0f, float max = 1f, bool rightSide = false)
+        private JSONStorableFloat NewRigiditySlider(string name, float def = 0f, float min = 0f, float max = 1f, bool rightSide = false)
         {
             JSONStorableFloat storable = new JSONStorableFloat(name, def, min, max);
             UIDynamicSlider slider = CreateSlider(storable, rightSide);
@@ -115,7 +117,7 @@ namespace everlaster
             return storable;
         }
 
-        void NewSpacer(float height, bool rightSide = false)
+        private void NewSpacer(float height, bool rightSide = false)
         {
             UIDynamic spacer = CreateSpacer(rightSide);
             spacer.height = height;

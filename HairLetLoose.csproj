@@ -83,7 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="HairLetLoose.cslist" />
-    <Compile Include="src\HairLetLoose.cs" />
+    <Compile Include="src\Main.cs" />
     <Compile Include="src\Utils\Calc.cs" />
     <Compile Include="src\Utils\Log.cs" />
   </ItemGroup>

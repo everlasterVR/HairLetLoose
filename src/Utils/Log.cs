@@ -1,15 +1,15 @@
-﻿namespace everlaster
+﻿namespace HairLetLoose
 {
     public static class Log
     {
-        public static void Error(string message, string className = nameof(HairLetLoose))
+        public static void Error(string message, string name = nameof(Main))
         {
-            SuperController.LogError($"{nameof(everlaster)}.{className}: {message}");
+            SuperController.LogError($"{nameof(HairLetLoose)}.{name}: {message}");
         }
 
-        public static void Message(string message, string className = nameof(HairLetLoose))
+        public static void Message(string message, string name = nameof(Main))
         {
-            SuperController.LogMessage($"{nameof(everlaster)}.{className}: {message}");
+            SuperController.LogMessage($"{nameof(HairLetLoose)}.{name}: {message}");
         }
 
         public static string BaseDebugInfo(float roll, float pitch, float tipRigidity, float mainRigidity, float baseVal)

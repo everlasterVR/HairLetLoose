@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace everlaster
+namespace HairLetLoose
 {
     public static class Calc
     {
@@ -35,7 +35,7 @@ namespace everlaster
             // roll = 90
             // pitch -90 .. 0 .. 90
             // same effect at -90 and 90 as at 0...
-            // 
+            //
         }
 
         public static float UpsideDownFactor(float rollFactor, float pitch, float angleOffset)
