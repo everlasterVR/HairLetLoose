@@ -4,7 +4,7 @@
    "packageName" : "HairLetLoose", 
    "standardReferenceVersionOption" : "Latest", 
    "scriptReferenceVersionOption" : "Exact", 
-   "description" : "v0.0.0", 
+   "description" : "v<Version>. ",
    "credits" : "", 
    "instructions" : "", 
    "promotionalLink" : "", 

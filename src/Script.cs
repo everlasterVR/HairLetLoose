@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HairLetLoose
 {
-    internal class Main : MVRScript
+    internal class Script : MVRScript
     {
         private Transform head;
         private List<HairSimControl> hairSims = new List<HairSimControl>();
@@ -83,7 +83,7 @@ namespace HairLetLoose
             UIDynamicTextField titleUITextField = CreateTextField(titleUIText);
             titleUITextField.UItext.fontSize = 36;
             titleUITextField.height = 100;
-            titleUIText.SetVal($"{nameof(Main)}\n<size=28>v{pluginVersion}</size>");
+            titleUIText.SetVal($"{nameof(HairLetLoose)}\n<size=28>v{pluginVersion}</size>");
 
             minRootRigidity = NewRigiditySlider("Min root rigidity");
             NewSpacer(10f);

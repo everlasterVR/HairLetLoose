@@ -82,15 +82,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="HairLetLoose.cslist" />
-    <Compile Include="src\Main.cs" />
+    <Compile Include="src\Script.cs" />
     <Compile Include="src\Utils\Calc.cs" />
     <Compile Include="src\Utils\Log.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="HairLetLoose.cslist" />
     <None Include=".gitignore" />
     <None Include="meta.json" />
-    <None Include="package.sh" />
     <None Include="README.md" />
     <None Include="todo.md" />
   </ItemGroup>
