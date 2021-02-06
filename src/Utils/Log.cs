@@ -1,4 +1,6 @@
-﻿namespace HairLetLoose
+﻿using UnityEngine;
+
+namespace HairLetLoose
 {
     public static class Log
     {
@@ -12,17 +14,7 @@
             SuperController.LogMessage($"{nameof(HairLetLoose)}.{name}: {message}");
         }
 
-        public static string BaseDebugInfo(float roll, float pitch, float tipRigidity, float mainRigidity, float baseVal)
-        {
-            return
-                $"{NameValueString("Roll", roll, 100f, 10)}\n" +
-                $"{NameValueString("Pitch", pitch, 100f, 10)}\n" +
-                $"{NameValueString("Base val", baseVal, 1000f, 10)}\n" +
-                $"{NameValueString("Tip rigidity", tipRigidity, 1000f, 22)}\n" +
-                $"{NameValueString("Main rigidity", mainRigidity, 1000f, 20)}";
-        }
-
-        private static string NameValueString(
+        public static string NameValueString(
             string name,
             float value,
             float roundFactor = 1000f,
