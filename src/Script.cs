@@ -1,5 +1,6 @@
 ﻿//#define SHOW_DEBUG
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -15,7 +16,6 @@ namespace HairLetLoose
         //TODO generalize / select from list
         private HairSimControl test;
 
-        private JSONStorableFloat rootRigidity;
         private JSONStorableFloat mainRigidity;
         private JSONStorableFloat tipRigidity;
 
@@ -60,11 +60,7 @@ namespace HairLetLoose
                     hairSims.Add(hair.GetComponentInChildren<HairSimControl>());
                 }
 
-                //TODO attempt reload if fails on scene load
-                test = hairSims.First();
-                rootRigidity = test.GetFloatJSONParam("rootRigidity");
-                mainRigidity = test.GetFloatJSONParam("mainRigidity");
-                tipRigidity = test.GetFloatJSONParam("tipRigidity");
+                StartCoroutine(LoadHair());
                 InitPluginUILeft();
                 InitPluginUIRight();
                 InitListeners();
@@ -73,6 +69,20 @@ namespace HairLetLoose
             {
                 Log.Error("Exception caught: " + e);
             }
+
+        }
+
+        private IEnumerator LoadHair()
+        {
+            yield return new WaitForEndOfFrame();
+
+            test = hairSims.First();
+            mainRigidity = test.GetFloatJSONParam("mainRigidity");
+            tipRigidity = test.GetFloatJSONParam("tipRigidity");
+            maxMainRigidity.defaultVal = mainRigidity.val;
+            maxMainRigidity.val = mainRigidity.val;
+            maxTipRigidity.defaultVal = tipRigidity.val;
+            maxTipRigidity.val = tipRigidity.val;
         }
 
         private void InitPluginUILeft()
@@ -99,9 +109,9 @@ namespace HairLetLoose
         private void InitPluginUIRight()
         {
             NewSpacer(100f, true);
-            maxMainRigidity = NewSlider("Max main rigidity", mainRigidity.val, rightSide: true);
+            maxMainRigidity = NewSlider("Max main rigidity", def: 0.015f, rightSide: true);
             NewSpacer(10f, true);
-            maxTipRigidity = NewSlider("Max tip rigidity", tipRigidity.val, rightSide: true);
+            maxTipRigidity = NewSlider("Max tip rigidity", def: 0.002f, rightSide: true);
         }
 
         private void InitListeners()
@@ -164,8 +174,8 @@ namespace HairLetLoose
         {
             float tiltY = (1 + Vector3.Dot(head.up, Vector3.up)) / 2; // 1 = upright, 0 = upside down
             float baseVal = Mathf.Clamp(Mathf.Lerp(lowerLimit, upperLimit, tiltY), 0f, 1f); // map tilt to lower-upper range, clamp to 0-1
-            mainRigidity.val = Calc.RoundToDecimals(Mathf.Lerp(minMainRigidity.val, 0.011f, baseVal), 1000f);
-            tipRigidity.val = Calc.RoundToDecimals(Mathf.Lerp(minTipRigidity.val, 0.005f, baseVal), 1000f);
+            mainRigidity.val = Calc.RoundToDecimals(Mathf.Lerp(minMainRigidity.val, maxMainRigidity.val, baseVal), 1000f);
+            tipRigidity.val = Calc.RoundToDecimals(Mathf.Lerp(minTipRigidity.val, maxTipRigidity.val, baseVal), 1000f);
 
 #if SHOW_DEBUG
             baseDebugInfo.SetVal(
