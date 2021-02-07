@@ -14,6 +14,9 @@ namespace HairLetLoose
         private float waitSeconds = 2f;
         private float waitLimit = 60f;
 
+        private float originalMainRigidity;
+        private float originalTipRigidity;
+
         private Transform head;
         private DAZHairGroup[] hairItems;
         private JSONStorableFloat minMainRigidity;
@@ -92,6 +95,12 @@ namespace HairLetLoose
 #endif
         }
 
+        public void RestoreOriginalPhysics()
+        {
+            hairSim.SetFloatParamValue("mainRigidity", originalMainRigidity);
+            hairSim.SetFloatParamValue("tipRigidity", originalTipRigidity);
+        }
+
         private IEnumerator LoadHairSimInternal()
         {
             loadHairSimInProgress = true;
@@ -116,10 +125,11 @@ namespace HairLetLoose
 
             mainRigidity = hairSim.GetFloatJSONParam("mainRigidity");
             tipRigidity = hairSim.GetFloatJSONParam("tipRigidity");
-            maxMainRigidity.defaultVal = mainRigidity.val;
-            maxMainRigidity.val = mainRigidity.val;
-            maxTipRigidity.defaultVal = tipRigidity.val;
-            maxTipRigidity.val = tipRigidity.val;
+            originalMainRigidity = mainRigidity.val;
+            originalTipRigidity = tipRigidity.val;
+            maxMainRigidity.val = mainRigidity.val > maxMainRigidity.max ? maxMainRigidity.max : mainRigidity.val;
+            maxTipRigidity.val = tipRigidity.val > maxTipRigidity.max ? maxTipRigidity.max : tipRigidity.val;
+            minMainRigidity.val = maxMainRigidity.val / 10;
 
             statusUIText.val = $"Active hair:\n{hairNameText}";
             enableUpdate = true;

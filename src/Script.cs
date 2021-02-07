@@ -56,9 +56,9 @@ namespace HairLetLoose
             titleUITextField.height = 100;
             titleUIText.SetVal($"{nameof(HairLetLoose)}\n<size=28>v{pluginVersion}</size>");
 
-            minMainRigidity = NewSlider("Min main rigidity");
+            minMainRigidity = NewSlider("Min main rigidity", def: 0.005f, max: 0.050f);
             NewSpacer(10f);
-            minTipRigidity = NewSlider("Min tip rigidity");
+            minTipRigidity = NewSlider("Min tip rigidity", def: 0.000f, max: 0.005f);
             NewSpacer(10f);
             upperAngleLimit = NewSlider("Upper limit <size=40>°</size>", def: 90f, min: -90f, max: 90f, valueFormat: "F0");
             lowerAngleLimit = NewSlider("Lower limit <size=40>°</size>", def: 45f, min: -90f, max: 90f, valueFormat: "F0");
@@ -77,9 +77,9 @@ namespace HairLetLoose
             statusUITextField.UItext.fontSize = 28;
             statusUITextField.height = 100;
 
-            maxMainRigidity = NewSlider("Max main rigidity", def: 0.015f, rightSide: true);
+            maxMainRigidity = NewSlider("Max main rigidity", def: 0.025f, max: 0.100f, rightSide: true);
             NewSpacer(10f, true);
-            maxTipRigidity = NewSlider("Max tip rigidity", def: 0.002f, rightSide: true);
+            maxTipRigidity = NewSlider("Max tip rigidity", def: 0.002f, max: 0.010f, rightSide: true);
         }
 
         private JSONStorableFloat NewSlider(
@@ -140,12 +140,14 @@ namespace HairLetLoose
         {
             if(hairSimHandler != null)
             {
+                hairSimHandler.RestoreOriginalPhysics();
                 hairSimHandler.enabled = false;
             }
         }
 
         public void OnDestroy()
         {
+            hairSimHandler.RestoreOriginalPhysics();
             Destroy(gameObject.GetComponent<HairSimHandler>());
         }
     }
