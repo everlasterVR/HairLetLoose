@@ -63,7 +63,6 @@ namespace HairLetLoose
             {
                 Log.Error("Exception caught: " + e);
             }
-
         }
 
         private IEnumerator LoadHairSim()
@@ -91,6 +90,20 @@ namespace HairLetLoose
                 waitCounter += waitSeconds;
                 loadHairSimInProgress = false;
                 yield break;
+            }
+
+            if(hairSim.hairSettings.PhysicsSettings.UsePaintedRigidity)
+            {
+                // toggle painted rigidity through UI if possible
+                try
+                {
+                    HairSimControlUI hsc = hairSim.UITransform.GetComponentInChildren<HairSimControlUI>();
+                    hsc.usePaintedRigidityToggle.isOn = false;
+                }
+                catch(NullReferenceException)
+                {
+                    hairSim.SyncUsePaintedRigidity(false);
+                }
             }
 
             mainRigidity = hairSim.GetFloatJSONParam("mainRigidity");
