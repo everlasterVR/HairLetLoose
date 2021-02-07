@@ -1,3 +1,4 @@
 src\Utils\Calc.cs
 src\Utils\Log.cs
+src\HairSimHandler.cs
 src\Script.cs
