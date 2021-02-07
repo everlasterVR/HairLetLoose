@@ -71,7 +71,7 @@ namespace HairLetLoose
             loadHairSimInProgress = true;
             yield return new WaitForEndOfFrame();
 
-            string name = "";
+            string name = $"<b><color=#AA0000>None</color></b>";
             foreach(DAZHairGroup it in hairItems)
             {
                 if(it.active && it.name == "CustomHairItem")
@@ -83,9 +83,10 @@ namespace HairLetLoose
                 }
             }
 
+            statusUIText.val = $"Active hair:\n{name}";
             if (hairSim == null || !hairSim.isActiveAndEnabled)
             {
-                statusUIText.val = $"<b><color=#AA0000>Select a hairstyle.</color></b>";
+                hairSim = null; // ensure reload if deactivated and reactivated
                 yield return new WaitForSecondsRealtime(waitSeconds);
                 waitCounter += waitSeconds;
                 loadHairSimInProgress = false;
