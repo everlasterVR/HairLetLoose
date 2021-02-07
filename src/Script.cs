@@ -1,23 +1,29 @@
 ﻿//#define SHOW_DEBUG
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace HairLetLoose
 {
     internal class Script : MVRScript
     {
-        private Transform head;
-        private List<HairSimControl> hairSims = new List<HairSimControl>();
         private string pluginVersion = "0.0.0";
 
-        //TODO generalize / select from list
-        private HairSimControl test;
+        private bool enableUpdate = false;
+        private bool enableCheck = true;
+        private bool loadHairSimInProgress = false;
+        private float waitCounter = 0f;
+        private float waitSeconds = 2f;
+        private float waitLimit = 60f;
+
+        private Transform head;
+        private DAZHairGroup[] hairItems;
+        private HairSimControl hairSim;
 
         private JSONStorableFloat mainRigidity;
         private JSONStorableFloat tipRigidity;
+
+        private JSONStorableString statusUIText;
 
         //registered storables
         private JSONStorableFloat minMainRigidity;
@@ -46,21 +52,9 @@ namespace HairLetLoose
 
                 head = containingAtom.GetStorableByID("head").transform;
                 DAZCharacterSelector geometry = containingAtom.GetComponentInChildren<DAZCharacterSelector>();
-                DAZHairGroup[] activeHairs = geometry.hairItems.Where(it => it.active).ToArray();
-                Transform hairContainer = geometry.femaleHairContainer;
+                hairItems = geometry.hairItems;
 
-                foreach(var hair in activeHairs)
-                {
-                    if(hair.name != "CustomHairItem")
-                    {
-                        Log.Error($"Plugin is only compatible with custom hairs, not '{hair.displayName}'");
-                        return;
-                    }
-
-                    hairSims.Add(hair.GetComponentInChildren<HairSimControl>());
-                }
-
-                StartCoroutine(LoadHair());
+                StartCoroutine(LoadHairSim());
                 InitPluginUILeft();
                 InitPluginUIRight();
                 InitListeners();
@@ -72,17 +66,42 @@ namespace HairLetLoose
 
         }
 
-        private IEnumerator LoadHair()
+        private IEnumerator LoadHairSim()
         {
+            loadHairSimInProgress = true;
             yield return new WaitForEndOfFrame();
 
-            test = hairSims.First();
-            mainRigidity = test.GetFloatJSONParam("mainRigidity");
-            tipRigidity = test.GetFloatJSONParam("tipRigidity");
+            string name = "";
+            foreach(DAZHairGroup it in hairItems)
+            {
+                if(it.active && it.name == "CustomHairItem")
+                {
+                    name = $"<b><color=#007700>{it.creatorName}</color></b>" +
+                        $" | <b><color=#007700>{it.displayName}</color></b>";
+                    hairSim = it.GetComponentInChildren<HairSimControl>();
+                    break;
+                }
+            }
+
+            if (hairSim == null || !hairSim.isActiveAndEnabled)
+            {
+                statusUIText.val = $"<b><color=#AA0000>Select a hairstyle.</color></b>";
+                yield return new WaitForSecondsRealtime(waitSeconds);
+                waitCounter += waitSeconds;
+                loadHairSimInProgress = false;
+                yield break;
+            }
+
+            mainRigidity = hairSim.GetFloatJSONParam("mainRigidity");
+            tipRigidity = hairSim.GetFloatJSONParam("tipRigidity");
             maxMainRigidity.defaultVal = mainRigidity.val;
             maxMainRigidity.val = mainRigidity.val;
             maxTipRigidity.defaultVal = tipRigidity.val;
             maxTipRigidity.val = tipRigidity.val;
+
+            statusUIText.val = $"Active hair:\n{name}";
+            enableUpdate = true;
+            loadHairSimInProgress = false;
         }
 
         private void InitPluginUILeft()
@@ -102,13 +121,17 @@ namespace HairLetLoose
 #if SHOW_DEBUG
             UIDynamicTextField baseDebugInfoField = CreateTextField(baseDebugInfo);
             baseDebugInfoField.height = 300;
-            baseDebugInfoField.UItext.fontSize = 26;
+            baseDebugInfoField.UItext.fontSize = 24;
 #endif
         }
 
         private void InitPluginUIRight()
         {
-            NewSpacer(100f, true);
+            statusUIText = new JSONStorableString("statusText", "");
+            UIDynamicTextField statusUITextField = CreateTextField(statusUIText, rightSide: true);
+            statusUITextField.UItext.fontSize = 28;
+            statusUITextField.height = 100;
+
             maxMainRigidity = NewSlider("Max main rigidity", def: 0.015f, rightSide: true);
             NewSpacer(10f, true);
             maxTipRigidity = NewSlider("Max tip rigidity", def: 0.002f, rightSide: true);
@@ -172,19 +195,55 @@ namespace HairLetLoose
 
         public void Update()
         {
-            float tiltY = (1 + Vector3.Dot(head.up, Vector3.up)) / 2; // 1 = upright, 0 = upside down
-            float baseVal = Mathf.Clamp(Mathf.Lerp(lowerLimit, upperLimit, tiltY), 0f, 1f); // map tilt to lower-upper range, clamp to 0-1
-            mainRigidity.val = Calc.RoundToDecimals(Mathf.Lerp(minMainRigidity.val, maxMainRigidity.val, baseVal), 1000f);
-            tipRigidity.val = Calc.RoundToDecimals(Mathf.Lerp(minTipRigidity.val, maxTipRigidity.val, baseVal), 1000f);
+            try
+            {
+                if(enableCheck)
+                {
+                    CheckHairSimStatus();
+                }
 
+                if(enableUpdate)
+                {
+                    float tiltY = (1 + Vector3.Dot(head.up, Vector3.up)) / 2; // 1 = upright, 0 = upside down
+                    float baseVal = Mathf.Clamp(Mathf.Lerp(lowerLimit, upperLimit, tiltY), 0f, 1f); // map tilt to lower-upper range, clamp to 0-1
+                    mainRigidity.val = Calc.RoundToDecimals(Mathf.Lerp(minMainRigidity.val, maxMainRigidity.val, baseVal), 1000f);
+                    tipRigidity.val = Calc.RoundToDecimals(Mathf.Lerp(minTipRigidity.val, maxTipRigidity.val, baseVal), 1000f);
 #if SHOW_DEBUG
-            baseDebugInfo.SetVal(
-                $"{Log.NameValueString("tiltY", tiltY, 100f, 10)}\n" +
-                $"{Log.NameValueString("Base val", baseVal, 1000f, 10)}\n" +
-                $"{Log.NameValueString("Tip rigidity", tipRigidity.val, 1000f, 22)}\n" +
-                $"{Log.NameValueString("Main rigidity", mainRigidity.val, 1000f, 20)}"
-            );
+                    baseDebugInfo.SetVal(
+                        $"{Log.NameValueString("tiltY", tiltY, 100f, 10)}\n" +
+                        $"{Log.NameValueString("Base val", baseVal, 1000f, 10)}\n" +
+                        $"{Log.NameValueString("Tip rigidity", tipRigidity.val, 1000f, 22)}\n" +
+                        $"{Log.NameValueString("Main rigidity", mainRigidity.val, 1000f, 20)}"
+                    );
 #endif
+                }
+            }
+            catch(Exception e)
+            {
+                enableUpdate = false;
+                Log.Error("Exception caught: " + e);
+            }
+        }
+
+        private void CheckHairSimStatus()
+        {
+            if(hairSim != null && hairSim.isActiveAndEnabled)
+            {
+                return;
+            }
+
+            enableUpdate = false;
+            if(waitCounter >= waitLimit)
+            {
+                enableCheck = false;
+                string msg = "Select a hairstyle and reload plugin.";
+                Log.Message($"No hair was selected in {waitLimit} seconds. {msg}");
+                statusUIText.val = $"<b><color=#AA0000>{msg}</color></b>";
+            }
+            else if(!loadHairSimInProgress)
+            {
+                StartCoroutine(LoadHairSim());
+            }
         }
     }
 }
