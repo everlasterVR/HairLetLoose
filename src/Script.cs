@@ -99,6 +99,11 @@ namespace HairLetLoose
             UIDynamicTextField valuesUITextField = CreateTextField(hairSimHandler.valuesUIText, rightSide: true);
             valuesUITextField.UItext.fontSize = 26;
             valuesUITextField.height = 255;
+
+            hairSimHandler.settingsInfoUIText = new JSONStorableString("logText", "");
+            UIDynamicTextField logUITextField = CreateTextField(hairSimHandler.settingsInfoUIText, rightSide: true);
+            logUITextField.UItext.fontSize = 26;
+            logUITextField.height = 525;
         }
 
         private JSONStorableFloat NewSlider(
@@ -203,6 +208,7 @@ namespace HairLetLoose
             if(hairSimHandler != null)
             {
                 hairSimHandler.RestoreOriginalPhysics();
+                hairSimHandler.NullifyCurrent();
                 hairSimHandler.enabled = false;
             }
         }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 namespace HairLetLoose
@@ -15,10 +14,13 @@ namespace HairLetLoose
         private float timeSinceLastUpdate;
         private float updateFrequency = 1/30f;
 
-        private float originalMainRigidity;
-        private float originalTipRigidity;
-        private float originalStyleCling;
-        private bool originalPaintedRigidity = false;
+        private bool? originalPaintedRigidity;
+        private float? originalWeight;
+        private float? originalDrag;
+        private float? originalGravity;
+        private float? originalMainRigidity;
+        private float? originalTipRigidity;
+        private float? originalStyleCling;
 
         private Transform head;
         private DAZHairGroup[] hairItems;
@@ -37,6 +39,7 @@ namespace HairLetLoose
 
         public JSONStorableString statusUIText;
         public JSONStorableString valuesUIText;
+        public JSONStorableString settingsInfoUIText;
         public HairSimControl hairSim = null;
         public string hairNameText;
 
@@ -76,12 +79,17 @@ namespace HairLetLoose
         {
             loadHairSimInProgress = true;
             yield return new WaitForEndOfFrame();
+            string settingInfo = "";
 
             FindAndSetActiveHairSim();
 
+            if(hairSim != null && !hairSim.isActiveAndEnabled)
+            {
+                RestoreOriginalPhysics();
+            }
             if(hairSim == null || !hairSim.isActiveAndEnabled)
             {
-                hairSim = null; // ensure reload if hair was deactivated and then reactivated
+                NullifyCurrent();
                 statusUIText.val = $"<b>Active hair\n<color=#AA0000>None</color></b>";
                 yield return new WaitForSecondsRealtime(waitSeconds);
                 waitCounter += waitSeconds;
@@ -89,34 +97,90 @@ namespace HairLetLoose
                 yield break;
             }
 
-            if(hairSim.GetBoolParamValue("usePaintedRigidity"))
+            originalPaintedRigidity = hairSim.GetBoolParamValue("usePaintedRigidity");
+            if((bool) originalPaintedRigidity)
             {
-                originalPaintedRigidity = true;
+                settingInfo = $"{settingInfo}\n- disabled painted rigidity";
                 hairSim.SetBoolParamValue("usePaintedRigidity", false);
             }
 
+            originalWeight = hairSim.GetFloatParamValue("weight");
+            float adjustedWeight = Mathf.Clamp((float) originalWeight, 1.350f, 1.650f);
+            if(originalWeight != adjustedWeight)
+            {
+                settingInfo = $"{settingInfo}\n- weight set to {adjustedWeight} (was {Calc.RoundToDecimals((float) originalWeight, 1000f)})";
+                hairSim.SetFloatParamValue("weight", adjustedWeight);
+            }
+
+            originalDrag = hairSim.GetFloatParamValue("drag");
+            float adjustedDrag = Mathf.Clamp((float) originalDrag, 0.050f, 0.150f);
+            if(originalDrag != adjustedDrag)
+            {
+                settingInfo = $"{settingInfo}\n- drag set to {adjustedDrag} (was {Calc.RoundToDecimals((float) originalDrag, 1000f)})";
+                hairSim.SetFloatParamValue("drag", adjustedDrag);
+            }
+
+            originalGravity = hairSim.GetFloatParamValue("gravityMultiplier");
+            float adjustedGravity = Mathf.Clamp((float) originalGravity, 0.900f, 1.100f);
+            if(originalGravity != adjustedGravity)
+            {
+                settingInfo = $"{settingInfo}\n- gravity multiplier set to {adjustedGravity} (was {Calc.RoundToDecimals((float) originalGravity, 1000f)})";
+                hairSim.SetFloatParamValue("gravityMultiplier", adjustedGravity);
+            }
+
             mainRigidity = hairSim.GetFloatJSONParam("mainRigidity");
-            maxMainRigidity.val = mainRigidity.val > maxMainRigidity.max ? maxMainRigidity.max : mainRigidity.val;
+            originalMainRigidity = mainRigidity.val;
+            if(mainRigidity.val > maxMainRigidity.max)
+            {
+                settingInfo = $"{settingInfo}\n- main rigidity set to {maxMainRigidity.max} (was {Calc.RoundToDecimals((float) originalMainRigidity, 1000f)})";
+                maxMainRigidity.val = maxMainRigidity.max;
+            }
+            else
+            {
+                maxMainRigidity.val = mainRigidity.val;
+            }
             maxMainRigidity.defaultVal = maxMainRigidity.val;
             minMainRigidity.val = maxMainRigidity.val / 10;
-            originalMainRigidity = mainRigidity.val;
 
             tipRigidity = hairSim.GetFloatJSONParam("tipRigidity");
-            maxTipRigidity.val = tipRigidity.val > maxTipRigidity.max ? maxTipRigidity.max : tipRigidity.val;
-            maxTipRigidity.defaultVal = maxTipRigidity.val;
             originalTipRigidity = tipRigidity.val;
+            if(tipRigidity.val > maxTipRigidity.max)
+            {
+                settingInfo = $"{settingInfo}\n- tip rigidity set to {maxTipRigidity.max} (was {Calc.RoundToDecimals((float) originalTipRigidity, 1000f)})";
+                maxTipRigidity.val = maxTipRigidity.max;
+            }
+            else
+            {
+                maxTipRigidity.val = tipRigidity.val;
+            }
+            maxTipRigidity.defaultVal = maxTipRigidity.val;
 
             styleCling = hairSim.GetFloatJSONParam("cling");
-            maxStyleCling.val = styleCling.val > maxStyleCling.max ? maxStyleCling.max : styleCling.val;
+            originalStyleCling = styleCling.val;
+            if(styleCling.val > maxStyleCling.max)
+            {
+                settingInfo = $"{settingInfo}\n- style cling set to {maxStyleCling.max} (was {Calc.RoundToDecimals((float) originalStyleCling, 1000f)})";
+                maxStyleCling.val = maxStyleCling.max;
+            }
+            else
+            {
+                maxStyleCling.val = styleCling.val;
+            }
             maxStyleCling.defaultVal = maxStyleCling.val;
             minStyleCling.val = maxStyleCling.val;
             minStyleCling.defaultVal = minStyleCling.val;
-            originalStyleCling = styleCling.val;
 
             statusUIText.val = $"<b>Active hair\n{hairNameText}</b>";
             enableUpdate = true;
             loadHairSimInProgress = false;
+
+            if(settingInfo.Length == 0)
+            {
+                settingInfo = "\nNone";
+            }
+            settingsInfoUIText.SetVal($"<b><size=30>Changes to hair physics on load</size></b>\n{settingInfo}");
         }
+
         private void FindAndSetActiveHairSim()
         {
             foreach(DAZHairGroup it in hairItems)
@@ -129,6 +193,19 @@ namespace HairLetLoose
                     break;
                 }
             }
+        }
+
+        public void NullifyCurrent()
+        {
+            settingsInfoUIText.SetVal("");
+            hairSim = null;
+            originalPaintedRigidity = null;
+            originalWeight = null;
+            originalDrag = null;
+            originalGravity = null;
+            originalMainRigidity = null;
+            originalTipRigidity = null;
+            originalStyleCling = null;
         }
 
         public void UpdateUpperLimit(float val)
@@ -174,10 +251,34 @@ namespace HairLetLoose
 
         public void RestoreOriginalPhysics()
         {
-            hairSim.SetFloatParamValue("mainRigidity", originalMainRigidity);
-            hairSim.SetFloatParamValue("tipRigidity", originalTipRigidity);
-            hairSim.SetFloatParamValue("cling", originalStyleCling);
-            hairSim.SetBoolParamValue("usePaintedRigidity", originalPaintedRigidity);
+            if(originalPaintedRigidity.HasValue)
+            {
+                hairSim.SetBoolParamValue("usePaintedRigidity", (bool) originalPaintedRigidity);
+            }
+            if(originalWeight.HasValue)
+            {
+                hairSim.SetFloatParamValue("weight", (float) originalWeight);
+            }
+            if(originalDrag.HasValue)
+            {
+                hairSim.SetFloatParamValue("drag", (float) originalDrag);
+            }
+            if(originalGravity.HasValue)
+            {
+                hairSim.SetFloatParamValue("gravity", (float) originalGravity);
+            }
+            if(originalMainRigidity.HasValue)
+            {
+                hairSim.SetFloatParamValue("mainRigidity", (float) originalMainRigidity);
+            }
+            if(originalTipRigidity.HasValue)
+            {
+                hairSim.SetFloatParamValue("tipRigidity", (float) originalTipRigidity);
+            }
+            if(originalStyleCling.HasValue)
+            {
+                hairSim.SetFloatParamValue("cling", (float) originalStyleCling);
+            }
         }
 
         private void CheckHairSimStatus()
