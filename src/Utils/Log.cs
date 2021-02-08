@@ -13,17 +13,5 @@ namespace HairLetLoose
         {
             SuperController.LogMessage($"{nameof(HairLetLoose)}.{name}: {message}");
         }
-
-        public static string NameValueString(
-            string name,
-            float value,
-            float roundFactor = 1000f,
-            int padRight = 0
-        )
-        {
-            float rounded = Calc.RoundToDecimals(value, roundFactor);
-            string printName = name.PadRight(padRight, ' ');
-            return string.Format("{0} {1}", printName, $"{rounded}");
-        }
     }
 }

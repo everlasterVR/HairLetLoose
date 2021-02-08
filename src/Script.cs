@@ -1,5 +1,4 @@
-﻿//#define SHOW_DEBUG
-using System;
+﻿using System;
 
 namespace HairLetLoose
 {
@@ -10,12 +9,15 @@ namespace HairLetLoose
         private HairSimHandler hairSimHandler;
 
         //registered storables
+        private JSONStorableFloat upperAngleLimit;
+
+        private JSONStorableFloat lowerAngleLimit;
         private JSONStorableFloat minMainRigidity;
         private JSONStorableFloat maxMainRigidity;
         private JSONStorableFloat minTipRigidity;
         private JSONStorableFloat maxTipRigidity;
-        private JSONStorableFloat upperAngleLimit;
-        private JSONStorableFloat lowerAngleLimit;
+        private JSONStorableFloat minStyleCling;
+        private JSONStorableFloat maxStyleCling;
 
         public override void Init()
         {
@@ -35,14 +37,23 @@ namespace HairLetLoose
                 InitPluginUILeft();
                 InitPluginUIRight();
                 InitListeners();
-                hairSimHandler.Init(containingAtom, minMainRigidity, maxMainRigidity, minTipRigidity, maxTipRigidity);
+                hairSimHandler.Init(
+                    containingAtom,
+                    minMainRigidity,
+                    maxMainRigidity,
+                    minTipRigidity,
+                    maxTipRigidity,
+                    minStyleCling,
+                    maxStyleCling
+                );
                 hairSimHandler.LoadHairSim();
                 hairSimHandler.UpdateUpperLimit(upperAngleLimit.val);
                 hairSimHandler.UpdateLowerLimit(lowerAngleLimit.val);
             }
             catch(Exception e)
             {
-                Log.Error("Exception caught: " + e);
+                Log.Error($"Exception caught: {e}");
+                hairSimHandler.enabled = false;
             }
         }
 
@@ -52,34 +63,42 @@ namespace HairLetLoose
         {
             JSONStorableString titleUIText = new JSONStorableString("titleText", "");
             UIDynamicTextField titleUITextField = CreateTextField(titleUIText);
-            titleUITextField.UItext.fontSize = 36;
+            titleUITextField.UItext.fontSize = 30;
             titleUITextField.height = 100;
-            titleUIText.SetVal($"{nameof(HairLetLoose)}\n<size=28>v{pluginVersion}</size>");
+            titleUIText.SetVal($"<b>{nameof(HairLetLoose)}</b>\n<size=26>v{pluginVersion}</size>");
 
-            minMainRigidity = NewSlider("Min main rigidity", def: 0.005f, max: 0.050f);
-            NewSpacer(10f);
-            minTipRigidity = NewSlider("Min tip rigidity", def: 0.000f, max: 0.005f);
-            NewSpacer(10f);
-            upperAngleLimit = NewSlider("Upper limit <size=40>°</size>", def: 90f, min: -90f, max: 90f, valueFormat: "F0");
             lowerAngleLimit = NewSlider("Lower limit <size=40>°</size>", def: 45f, min: -90f, max: 90f, valueFormat: "F0");
-#if SHOW_DEBUG
-            hairSimHandler.baseDebugInfo = new JSONStorableString("Base Debug Info", "");
-            UIDynamicTextField baseDebugInfoField = CreateTextField(hairSimHandler.baseDebugInfo);
-            baseDebugInfoField.height = 300;
-            baseDebugInfoField.UItext.fontSize = 24;
-#endif
+            upperAngleLimit = NewSlider("Upper limit <size=40>°</size>", def: 90f, min: -90f, max: 90f, valueFormat: "F0");
+            //NewSpacer(10f);
+            minMainRigidity = NewSlider("Main rigidity at lower limit", def: 0.005f, max: 0.100f);
+            maxMainRigidity = NewSlider("Main rigidity at upper limit", def: 0.025f, max: 0.100f);
+            //NewSpacer(10f);
+            minTipRigidity = NewSlider("Tip rigidity at lower limit", def: 0.000f, max: 0.010f, valueFormat: "F4");
+            maxTipRigidity = NewSlider("Tip rigidity at upper limit", def: 0.002f, max: 0.010f, valueFormat: "F4");
+            //NewSpacer(10f);
+            minStyleCling = NewSlider("Style cling at lower limit", valueFormat: "F2");
+            maxStyleCling = NewSlider("Style cling at upper limit", valueFormat: "F2");
         }
 
         private void InitPluginUIRight()
         {
             hairSimHandler.statusUIText = new JSONStorableString("statusText", "");
             UIDynamicTextField statusUITextField = CreateTextField(hairSimHandler.statusUIText, rightSide: true);
-            statusUITextField.UItext.fontSize = 28;
+            statusUITextField.UItext.fontSize = 30;
             statusUITextField.height = 100;
 
-            maxMainRigidity = NewSlider("Max main rigidity", def: 0.025f, max: 0.100f, rightSide: true);
-            NewSpacer(10f, true);
-            maxTipRigidity = NewSlider("Max tip rigidity", def: 0.002f, max: 0.010f, rightSide: true);
+            JSONStorableString helpUIText = new JSONStorableString("helpText", "");
+            UIDynamicTextField helpUITextField = CreateTextField(helpUIText, rightSide: true);
+            helpUITextField.UItext.fontSize = 26;
+            helpUITextField.height = 255;
+            helpUIText.SetVal($"<b><size=30>How it works</size></b>\n\n" +
+                $"Hair is the least rigid at the lower limit angle, and the most rigid at the upper limit angle.\n\n" +
+                $"90° is upright, 0° is horizontal, -90° is upside down.");
+
+            hairSimHandler.valuesUIText = new JSONStorableString("statusText", "");
+            UIDynamicTextField valuesUITextField = CreateTextField(hairSimHandler.valuesUIText, rightSide: true);
+            valuesUITextField.UItext.fontSize = 26;
+            valuesUITextField.height = 255;
         }
 
         private JSONStorableFloat NewSlider(
@@ -104,19 +123,8 @@ namespace HairLetLoose
             spacer.height = height;
         }
 
-        #endregion User interface
-
         private void InitListeners()
         {
-            upperAngleLimit.slider.onValueChanged.AddListener((float val) =>
-            {
-                if(val < lowerAngleLimit.val)
-                {
-                    lowerAngleLimit.val = val;
-                    hairSimHandler.UpdateLowerLimit(val);
-                }
-                hairSimHandler.UpdateUpperLimit(val);
-            });
             lowerAngleLimit.slider.onValueChanged.AddListener((float val) =>
             {
                 if(val > upperAngleLimit.val)
@@ -126,7 +134,60 @@ namespace HairLetLoose
                 }
                 hairSimHandler.UpdateLowerLimit(val);
             });
+            upperAngleLimit.slider.onValueChanged.AddListener((float val) =>
+            {
+                if(val < lowerAngleLimit.val)
+                {
+                    lowerAngleLimit.val = val;
+                    hairSimHandler.UpdateLowerLimit(val);
+                }
+                hairSimHandler.UpdateUpperLimit(val);
+            });
+            minMainRigidity.slider.onValueChanged.AddListener((float val) =>
+            {
+                if(val > maxMainRigidity.val)
+                {
+                    maxMainRigidity.val = val;
+                }
+            });
+            maxMainRigidity.slider.onValueChanged.AddListener((float val) =>
+            {
+                if(val < minMainRigidity.val)
+                {
+                    minMainRigidity.val = val;
+                }
+            });
+            minTipRigidity.slider.onValueChanged.AddListener((float val) =>
+            {
+                if(val > maxTipRigidity.val)
+                {
+                    maxTipRigidity.val = val;
+                }
+            });
+            maxTipRigidity.slider.onValueChanged.AddListener((float val) =>
+            {
+                if(val < minTipRigidity.val)
+                {
+                    minTipRigidity.val = val;
+                }
+            });
+            minStyleCling.slider.onValueChanged.AddListener((float val) =>
+            {
+                if(val > maxStyleCling.val)
+                {
+                    maxStyleCling.val = val;
+                }
+            });
+            maxStyleCling.slider.onValueChanged.AddListener((float val) =>
+            {
+                if(val < minStyleCling.val)
+                {
+                    minStyleCling.val = val;
+                }
+            });
         }
+
+        #endregion User interface
 
         public void OnEnable()
         {

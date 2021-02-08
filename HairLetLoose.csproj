@@ -82,6 +82,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\HairSimHandler.cs" />
     <Compile Include="src\Script.cs" />
     <Compile Include="src\Utils\Calc.cs" />
     <Compile Include="src\Utils\Log.cs" />
