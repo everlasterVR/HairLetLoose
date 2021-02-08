@@ -18,6 +18,7 @@ namespace HairLetLoose
         private float originalMainRigidity;
         private float originalTipRigidity;
         private float originalStyleCling;
+        private bool originalPaintedRigidity = false;
 
         private Transform head;
         private DAZHairGroup[] hairItems;
@@ -70,6 +71,7 @@ namespace HairLetLoose
         {
             StartCoroutine(LoadHairSimInternal());
         }
+
         private IEnumerator LoadHairSimInternal()
         {
             loadHairSimInProgress = true;
@@ -87,9 +89,10 @@ namespace HairLetLoose
                 yield break;
             }
 
-            if(hairSim.hairSettings.PhysicsSettings.UsePaintedRigidity)
+            if(hairSim.GetBoolParamValue("usePaintedRigidity"))
             {
-                DisablePaintedRigidity();
+                originalPaintedRigidity = true;
+                hairSim.SetBoolParamValue("usePaintedRigidity", false);
             }
 
             mainRigidity = hairSim.GetFloatJSONParam("mainRigidity");
@@ -125,20 +128,6 @@ namespace HairLetLoose
                     hairSim = it.GetComponentInChildren<HairSimControl>();
                     break;
                 }
-            }
-        }
-
-        // toggle painted rigidity through UI if possible
-        private void DisablePaintedRigidity()
-        {
-            try
-            {
-                HairSimControlUI hsc = hairSim.UITransform.GetComponentInChildren<HairSimControlUI>();
-                hsc.usePaintedRigidityToggle.isOn = false;
-            }
-            catch(NullReferenceException)
-            {
-                hairSim.SyncUsePaintedRigidity(false);
             }
         }
 
@@ -188,6 +177,7 @@ namespace HairLetLoose
             hairSim.SetFloatParamValue("mainRigidity", originalMainRigidity);
             hairSim.SetFloatParamValue("tipRigidity", originalTipRigidity);
             hairSim.SetFloatParamValue("cling", originalStyleCling);
+            hairSim.SetBoolParamValue("usePaintedRigidity", originalPaintedRigidity);
         }
 
         private void CheckHairSimStatus()

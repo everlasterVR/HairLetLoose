@@ -194,6 +194,7 @@ namespace HairLetLoose
             if(hairSimHandler != null)
             {
                 hairSimHandler.enabled = true;
+                hairSimHandler.LoadHairSim();
             }
         }
 
