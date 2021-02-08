@@ -9,9 +9,11 @@ namespace HairLetLoose
         private bool enableUpdate = false;
         private bool enableCheck = true;
         private bool loadHairSimInProgress = false;
-        private float waitCounter = 0f;
-        private float waitSeconds = 2f;
-        private float waitLimit = 60f;
+        private int waitCounter;
+        private int waitSeconds = 2;
+        private int waitLimit = 60;
+        private float timeSinceLastUpdate;
+        private float updateFrequency = 1/30f;
 
         private float originalMainRigidity;
         private float originalTipRigidity;
@@ -36,6 +38,12 @@ namespace HairLetLoose
         public JSONStorableString valuesUIText;
         public HairSimControl hairSim = null;
         public string hairNameText;
+
+        public void OnEnable()
+        {
+            waitCounter = 0;
+            timeSinceLastUpdate = 0f;
+        }
 
         public void Init(
             Atom containingAtom,
@@ -62,47 +70,6 @@ namespace HairLetLoose
         {
             StartCoroutine(LoadHairSimInternal());
         }
-
-        public void UpdateUpperLimit(float val)
-        {
-            float amount = Mathf.Clamp(1 - (val + 90)/180, 0, 0.99f); //prevent division by 0
-            upperLimit = 1 + amount/(1 - amount);
-        }
-
-        public void UpdateLowerLimit(float val)
-        {
-            float amount = Mathf.Clamp(1 - (90 - val)/180, 0, 0.99f); //prevent division by 0
-            lowerLimit = -amount/(1 - amount);
-        }
-
-        public void Update()
-        {
-            if(enableCheck)
-            {
-                CheckHairSimStatus();
-            }
-
-            if(!enableUpdate)
-            {
-                return;
-            }
-
-            float tiltY = (1 + Vector3.Dot(head.up, Vector3.up)) / 2; // 1 = upright, 0 = upside down
-            float baseVal = Mathf.Clamp(Mathf.Lerp(lowerLimit, upperLimit, tiltY), 0f, 1f); // map tilt to lower-upper range, clamp to 0-1
-            mainRigidity.val = Calc.RoundToDecimals(Mathf.Lerp(minMainRigidity.val, maxMainRigidity.val, baseVal), 1000f);
-            tipRigidity.val = Calc.RoundToDecimals(Mathf.Lerp(minTipRigidity.val, maxTipRigidity.val, baseVal), 10000f);
-            styleCling.val = Calc.RoundToDecimals(Mathf.Lerp(minStyleCling.val, maxStyleCling.val, baseVal), 100f);
-
-            UpdateValuesUIText(tiltY);
-        }
-
-        public void RestoreOriginalPhysics()
-        {
-            hairSim.SetFloatParamValue("mainRigidity", originalMainRigidity);
-            hairSim.SetFloatParamValue("tipRigidity", originalTipRigidity);
-            hairSim.SetFloatParamValue("cling", originalStyleCling);
-        }
-
         private IEnumerator LoadHairSimInternal()
         {
             loadHairSimInProgress = true;
@@ -147,7 +114,6 @@ namespace HairLetLoose
             enableUpdate = true;
             loadHairSimInProgress = false;
         }
-
         private void FindAndSetActiveHairSim()
         {
             foreach(DAZHairGroup it in hairItems)
@@ -174,6 +140,54 @@ namespace HairLetLoose
             {
                 hairSim.SyncUsePaintedRigidity(false);
             }
+        }
+
+        public void UpdateUpperLimit(float val)
+        {
+            float amount = Mathf.Clamp(1 - (val + 90)/180, 0, 0.99f); //prevent division by 0
+            upperLimit = 1 + amount/(1 - amount);
+        }
+
+        public void UpdateLowerLimit(float val)
+        {
+            float amount = Mathf.Clamp(1 - (90 - val)/180, 0, 0.99f); //prevent division by 0
+            lowerLimit = -amount/(1 - amount);
+        }
+
+        public void Update()
+        {
+            if(enableCheck)
+            {
+                CheckHairSimStatus();
+            }
+
+            if(enableUpdate)
+            {
+                timeSinceLastUpdate += Time.deltaTime;
+                if(timeSinceLastUpdate >= updateFrequency)
+                {
+                    timeSinceLastUpdate -= updateFrequency;
+                    UpdateHairPhysics();
+                }
+            }
+        }
+
+        private void UpdateHairPhysics()
+        {
+            float tiltY = (1 + Vector3.Dot(head.up, Vector3.up)) / 2; // 1 = upright, 0 = upside down
+            float baseVal = Mathf.Clamp(Mathf.Lerp(lowerLimit, upperLimit, tiltY), 0f, 1f); // map tilt to lower-upper range, clamp to 0-1
+            mainRigidity.val = Calc.RoundToDecimals(Mathf.Lerp(minMainRigidity.val, maxMainRigidity.val, baseVal), 1000f);
+            tipRigidity.val = Calc.RoundToDecimals(Mathf.Lerp(minTipRigidity.val, maxTipRigidity.val, baseVal), 10000f);
+            styleCling.val = Calc.RoundToDecimals(Mathf.Lerp(minStyleCling.val, maxStyleCling.val, baseVal), 100f);
+
+            UpdateValuesUIText(tiltY);
+        }
+
+        public void RestoreOriginalPhysics()
+        {
+            hairSim.SetFloatParamValue("mainRigidity", originalMainRigidity);
+            hairSim.SetFloatParamValue("tipRigidity", originalTipRigidity);
+            hairSim.SetFloatParamValue("cling", originalStyleCling);
         }
 
         private void CheckHairSimStatus()
