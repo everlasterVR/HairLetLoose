@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleJSON;
+using System;
 
 namespace HairLetLoose
 {
@@ -7,17 +8,6 @@ namespace HairLetLoose
         private string pluginVersion = "0.0.0";
 
         private HairSimHandler hairSimHandler;
-
-        //registered storables
-        private JSONStorableFloat upperAngleLimit;
-
-        private JSONStorableFloat lowerAngleLimit;
-        private JSONStorableFloat minMainRigidity;
-        private JSONStorableFloat maxMainRigidity;
-        private JSONStorableFloat minTipRigidity;
-        private JSONStorableFloat maxTipRigidity;
-        private JSONStorableFloat minStyleCling;
-        private JSONStorableFloat maxStyleCling;
 
         public override void Init()
         {
@@ -35,20 +25,9 @@ namespace HairLetLoose
                 }
 
                 InitPluginUILeft();
+                hairSimHandler.Init(containingAtom);
                 InitPluginUIRight();
-                InitListeners();
-                hairSimHandler.Init(
-                    containingAtom,
-                    minMainRigidity,
-                    maxMainRigidity,
-                    minTipRigidity,
-                    maxTipRigidity,
-                    minStyleCling,
-                    maxStyleCling
-                );
-                hairSimHandler.LoadHairSim();
-                hairSimHandler.UpdateUpperLimit(upperAngleLimit.val);
-                hairSimHandler.UpdateLowerLimit(lowerAngleLimit.val);
+                hairSimHandler.UpdateLimits();
             }
             catch(Exception e)
             {
@@ -67,25 +46,23 @@ namespace HairLetLoose
             titleUITextField.height = 100;
             titleUIText.SetVal($"<b>{nameof(HairLetLoose)}</b>\n<size=26>v{pluginVersion}</size>");
 
-            lowerAngleLimit = NewSlider("Lower limit <size=40>°</size>", def: 45f, min: -90f, max: 90f, valueFormat: "F0");
-            upperAngleLimit = NewSlider("Upper limit <size=40>°</size>", def: 90f, min: -90f, max: 90f, valueFormat: "F0");
-            //NewSpacer(10f);
-            minMainRigidity = NewSlider("Main rigidity at lower limit", def: 0.005f, max: 0.100f);
-            maxMainRigidity = NewSlider("Main rigidity at upper limit", def: 0.025f, max: 0.100f);
-            //NewSpacer(10f);
-            minTipRigidity = NewSlider("Tip rigidity at lower limit", def: 0.000f, max: 0.010f, valueFormat: "F4");
-            maxTipRigidity = NewSlider("Tip rigidity at upper limit", def: 0.002f, max: 0.010f, valueFormat: "F4");
-            //NewSpacer(10f);
-            minStyleCling = NewSlider("Style cling at lower limit", valueFormat: "F2");
-            maxStyleCling = NewSlider("Style cling at upper limit", valueFormat: "F2");
+            UISliderStore.Init();
+            NewSlider(UISliderStore.dummyLowerAngleLimit, valueFormat: "F0");
+            NewSlider(UISliderStore.dummyUpperAngleLimit, valueFormat: "F0");
+            NewSlider(UISliderStore.dummyMinMainRigidity, valueFormat: "F3");
+            NewSlider(UISliderStore.dummyMaxMainRigidity, valueFormat: "F3");
+            NewSlider(UISliderStore.dummyMinTipRigidity, valueFormat: "F4");
+            NewSlider(UISliderStore.dummyMaxTipRigidity, valueFormat: "F4");
+            NewSlider(UISliderStore.dummyMinStyleCling, valueFormat: "F2");
+            NewSlider(UISliderStore.dummyMaxStyleCling, valueFormat: "F2");
+            UISliderStore.StoreSliders();
         }
 
         private void InitPluginUIRight()
         {
-            hairSimHandler.statusUIText = new JSONStorableString("statusText", "");
-            UIDynamicTextField statusUITextField = CreateTextField(hairSimHandler.statusUIText, rightSide: true);
-            statusUITextField.UItext.fontSize = 30;
-            statusUITextField.height = 100;
+            hairSimHandler.CreateHairSelect();
+            UIDynamicPopup hairUISelectPopup = CreatePopup(hairSimHandler.hairUISelect, rightSide: true);
+            hairUISelectPopup.height = 100;
 
             JSONStorableString helpUIText = new JSONStorableString("helpText", "");
             UIDynamicTextField helpUITextField = CreateTextField(helpUIText, rightSide: true);
@@ -95,7 +72,7 @@ namespace HairLetLoose
                 $"Hair is the least rigid at the lower limit angle, and the most rigid at the upper limit angle.\n\n" +
                 $"90° is upright, 0° is horizontal, -90° is upside down.");
 
-            hairSimHandler.valuesUIText = new JSONStorableString("statusText", "");
+            hairSimHandler.valuesUIText = new JSONStorableString("valuesText", "");
             UIDynamicTextField valuesUITextField = CreateTextField(hairSimHandler.valuesUIText, rightSide: true);
             valuesUITextField.UItext.fontSize = 26;
             valuesUITextField.height = 255;
@@ -106,90 +83,37 @@ namespace HairLetLoose
             logUITextField.height = 525;
         }
 
-        private JSONStorableFloat NewSlider(
-            string name,
-            float def = 0f,
-            float min = 0f,
-            float max = 1f,
-            string valueFormat = "F3", // 3 decimal places
+        private void NewSlider(
+            JSONStorableFloat storable,
+            string valueFormat, // 3 decimal places
             bool rightSide = false
         )
         {
-            JSONStorableFloat storable = new JSONStorableFloat(name, def, min, max);
             UIDynamicSlider slider = CreateSlider(storable, rightSide);
             slider.valueFormat = valueFormat;
-            RegisterFloat(storable);
-            return storable;
         }
 
-        private void NewSpacer(float height, bool rightSide = false)
+        public override JSONClass GetJSON(bool includePhysical = true, bool includeAppearance = true, bool forceStore = false)
         {
-            UIDynamic spacer = CreateSpacer(rightSide);
-            spacer.height = height;
-        }
+            JSONClass json = base.GetJSON(includePhysical, includeAppearance, forceStore);
 
-        private void InitListeners()
-        {
-            lowerAngleLimit.slider.onValueChanged.AddListener((float val) =>
-            {
-                if(val > upperAngleLimit.val)
-                {
-                    upperAngleLimit.val = val;
-                    hairSimHandler.UpdateUpperLimit(val);
-                }
-                hairSimHandler.UpdateLowerLimit(val);
-            });
-            upperAngleLimit.slider.onValueChanged.AddListener((float val) =>
-            {
-                if(val < lowerAngleLimit.val)
-                {
-                    lowerAngleLimit.val = val;
-                    hairSimHandler.UpdateLowerLimit(val);
-                }
-                hairSimHandler.UpdateUpperLimit(val);
-            });
-            minMainRigidity.slider.onValueChanged.AddListener((float val) =>
-            {
-                if(val > maxMainRigidity.val)
-                {
-                    maxMainRigidity.val = val;
-                }
-            });
-            maxMainRigidity.slider.onValueChanged.AddListener((float val) =>
-            {
-                if(val < minMainRigidity.val)
-                {
-                    minMainRigidity.val = val;
-                }
-            });
-            minTipRigidity.slider.onValueChanged.AddListener((float val) =>
-            {
-                if(val > maxTipRigidity.val)
-                {
-                    maxTipRigidity.val = val;
-                }
-            });
-            maxTipRigidity.slider.onValueChanged.AddListener((float val) =>
-            {
-                if(val < minTipRigidity.val)
-                {
-                    minTipRigidity.val = val;
-                }
-            });
-            minStyleCling.slider.onValueChanged.AddListener((float val) =>
-            {
-                if(val > maxStyleCling.val)
-                {
-                    maxStyleCling.val = val;
-                }
-            });
-            maxStyleCling.slider.onValueChanged.AddListener((float val) =>
-            {
-                if(val < minStyleCling.val)
-                {
-                    minStyleCling.val = val;
-                }
-            });
+            //var animationJSON = new JSONClass
+            //{
+            //    { "Speed", animation.speed.ToString(CultureInfo.InvariantCulture) },
+            //    { "Master", animation.master ? "1" : "0" }
+            //};
+            //var clipsJSON = new JSONArray();
+            //foreach(var clip in animation.clips.Where(c => animationNameFilter == null || c.animationName == animationNameFilter))
+            //{
+            //    clipsJSON.Add(SerializeClip(clip));
+            //}
+            //animationJSON.Add("Clips", clipsJSON);
+            //return animationJSON;
+
+            //json["HairPhysics"] = serializer.SerializeAnimation(animation);
+            //json["Options"] = AtomAnimationSerializer.SerializeEditContext(animationEditContext);
+
+            return json;
         }
 
         #endregion User interface
@@ -199,7 +123,6 @@ namespace HairLetLoose
             if(hairSimHandler != null)
             {
                 hairSimHandler.enabled = true;
-                hairSimHandler.LoadHairSim();
             }
         }
 
@@ -207,15 +130,15 @@ namespace HairLetLoose
         {
             if(hairSimHandler != null)
             {
-                hairSimHandler.RestoreOriginalPhysics();
-                hairSimHandler.NullifyCurrent();
+                hairSimHandler.RestoreAllOriginalPhysics();
+                //hairSimHandler.NullifyCurrent();
                 hairSimHandler.enabled = false;
             }
         }
 
         public void OnDestroy()
         {
-            hairSimHandler.RestoreOriginalPhysics();
+            hairSimHandler.RestoreAllOriginalPhysics();
             Destroy(gameObject.GetComponent<HairSimHandler>());
         }
     }
