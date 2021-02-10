@@ -233,25 +233,18 @@ namespace HairLetLoose
             maxStyleCling.defaultVal = maxStyleCling.val;
             minStyleCling.val = maxStyleCling.val;
             minStyleCling.defaultVal = minStyleCling.val;
-        }
 
-        public void UpdateUpperLimit()
-        {
             UpdateUpperLimit(upperLimit);
+            UpdateLowerLimit(lowerLimit);
         }
 
-        public void UpdateUpperLimit(float val)
+        private void UpdateUpperLimit(float val)
         {
             float amount = Mathf.Clamp(1 - (val + 90)/180, 0, 0.99f); //prevent division by 0
             upperLimit = 1 + amount/(1 - amount);
         }
 
-        public void UpdateLowerLimit()
-        {
-            UpdateLowerLimit(lowerLimit);
-        }
-
-        public void UpdateLowerLimit(float val)
+        private void UpdateLowerLimit(float val)
         {
             float amount = Mathf.Clamp(1 - (90 - val)/180, 0, 0.99f); //prevent division by 0
             lowerLimit = -amount/(1 - amount);
@@ -279,6 +272,32 @@ namespace HairLetLoose
             hairSim.SetFloatParamValue("mainRigidity", mainRigidity);
             hairSim.SetFloatParamValue("tipRigidity", tipRigidity);
             hairSim.SetFloatParamValue("cling", cling);
+        }
+
+        public string GetStatus()
+        {
+            return $"Main rigidity: {FormatValue(mainRigidityStorable, minMainRigidity, maxMainRigidity)}\n" +
+               $"Tip rigidity: {FormatValue(tipRigidityStorable, minTipRigidity, maxTipRigidity)}\n" +
+               $"Style cling: {FormatValue(styleClingStorable, minStyleCling, maxStyleCling)}";
+        }
+
+        private string FormatValue(JSONStorableFloat storable, JSONStorableFloat min, JSONStorableFloat max)
+        {
+            string text = $"{storable.val}";
+            if(min.val == max.val)
+            {
+                return text;
+            }
+
+            if(storable.val >= max.val)
+            {
+                text += " (highest)";
+            }
+            else if(storable.val <= min.val)
+            {
+                text += " (lowest)";
+            }
+            return text;
         }
     }
 }

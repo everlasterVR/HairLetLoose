@@ -26,7 +26,6 @@ namespace HairLetLoose
 
                 InitPluginUILeft();
                 hairSimHandler.Init(containingAtom);
-                hairSimHandler.UpdateLimits();
                 InitPluginUIRight();
             }
             catch(Exception e)

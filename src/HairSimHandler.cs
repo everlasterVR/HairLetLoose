@@ -184,15 +184,6 @@ namespace HairLetLoose
             //settingsInfoUIText.SetVal($"<b><size=30>Changes to hair physics on load</size></b>\n{settingInfo}");
         }
 
-        public void UpdateLimits()
-        {
-            foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
-            {
-                it.Value.UpdateUpperLimit();
-                it.Value.UpdateLowerLimit();
-            }
-        }
-
         // TODO setval "" when no active hair selected
         // TODO checkbox to select if plugin should remember hair settings during session?
         //public void NullifyCurrent()
@@ -227,40 +218,24 @@ namespace HairLetLoose
             foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
             {
                 it.Value.UpdatePhysics(tiltY);
-                UpdateValuesUIText(tiltY);
             }
+            UpdateValuesUIText(tiltY);
         }
 
         // TODO get status from current active hair sim
         private void UpdateValuesUIText(float tiltY)
         {
             int angleDegrees = Mathf.RoundToInt((tiltY * 180) - 90);
-            valuesUIText.SetVal(
-                $"<b><size=30>Current values</size></b>\n\n" +
-                $"Angle: {angleDegrees}°\n"
-            //$"Main rigidity: {FormatValue(mainRigidity, minMainRigidity, maxMainRigidity)}\n" +
-            //$"Tip rigidity: {FormatValue(tipRigidity, minTipRigidity, maxTipRigidity)}\n" +
-            //$"Style cling: {FormatValue(styleCling, minStyleCling, maxStyleCling)}"
-            );
-        }
+            string text = $"<b><size=30>Current values</size></b>\n\n" +
+                $"Angle: {angleDegrees}°";
 
-        private string FormatValue(JSONStorableFloat storable, JSONStorableFloat min, JSONStorableFloat max)
-        {
-            string text = $"{storable.val}";
-            if(min.val == max.val)
+            if(activeHairSims.ContainsKey(hairUISelect.val))
             {
-                return text;
+                text = $"{text}\n" +
+                    $"{activeHairSims[hairUISelect.val].GetStatus()}";
             }
 
-            if(storable.val >= max.val)
-            {
-                text += " (highest)";
-            }
-            else if(storable.val <= min.val)
-            {
-                text += " (lowest)";
-            }
-            return text;
+            valuesUIText.SetVal(text);
         }
 
         public void OnDisable()
