@@ -26,7 +26,6 @@ namespace HairLetLoose
         public JSONStorableStringChooser hairUISelect;
         public JSONStorableString valuesUIText;
         public JSONStorableString settingsInfoUIText;
-        public HairSimControl hairSimOld = null;
         public string hairNameText;
 
         public void OnEnable()
@@ -34,6 +33,10 @@ namespace HairLetLoose
             waitCounter = 0;
             timeSinceLastUpdate = 0f;
             activeHairSims = new Dictionary<string, ActiveHairSim>();
+            if (hairUISelect != null)
+            {
+                hairUISelect.val = defaultOption;
+            }
         }
 
         public void Init(Atom containingAtom)
@@ -192,11 +195,11 @@ namespace HairLetLoose
 
         // TODO setval "" when no active hair selected
         // TODO checkbox to select if plugin should remember hair settings during session?
-        public void NullifyCurrent()
-        {
-            settingsInfoUIText.SetVal("");
-            hairSimOld = null;
-        }
+        //public void NullifyCurrent()
+        //{
+        //    settingsInfoUIText.SetVal("");
+        //    hairSimOld = null;
+        //}
 
         public void Update()
         {
@@ -225,14 +228,6 @@ namespace HairLetLoose
             {
                 it.Value.UpdatePhysics(tiltY);
                 UpdateValuesUIText(tiltY);
-            }
-        }
-
-        public void RestoreAllOriginalPhysics()
-        {
-            foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
-            {
-                it.Value.RestoreOriginalPhysics();
             }
         }
 
@@ -266,6 +261,26 @@ namespace HairLetLoose
                 text += " (lowest)";
             }
             return text;
+        }
+
+        public void OnDisable()
+        {
+            RestoreAllOriginalPhysics();
+            //hairSimHandler.NullifyCurrent();
+
+        }
+
+        public void OnDestroy()
+        {
+            RestoreAllOriginalPhysics();
+        }
+
+        private void RestoreAllOriginalPhysics()
+        {
+            foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
+            {
+                it.Value.RestoreOriginalPhysics();
+            }
         }
     }
 }

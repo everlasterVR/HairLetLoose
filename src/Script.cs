@@ -26,13 +26,21 @@ namespace HairLetLoose
 
                 InitPluginUILeft();
                 hairSimHandler.Init(containingAtom);
-                InitPluginUIRight();
                 hairSimHandler.UpdateLimits();
+                InitPluginUIRight();
             }
             catch(Exception e)
             {
                 Log.Error($"Exception caught: {e}");
                 hairSimHandler.enabled = false;
+            }
+        }
+
+        public void OnEnable()
+        {
+            if(hairSimHandler != null)
+            {
+                hairSimHandler.enabled = true;
             }
         }
 
@@ -118,27 +126,16 @@ namespace HairLetLoose
 
         #endregion User interface
 
-        public void OnEnable()
-        {
-            if(hairSimHandler != null)
-            {
-                hairSimHandler.enabled = true;
-            }
-        }
-
         public void OnDisable()
         {
             if(hairSimHandler != null)
             {
-                hairSimHandler.RestoreAllOriginalPhysics();
-                //hairSimHandler.NullifyCurrent();
                 hairSimHandler.enabled = false;
             }
         }
 
         public void OnDestroy()
         {
-            hairSimHandler.RestoreAllOriginalPhysics();
             Destroy(gameObject.GetComponent<HairSimHandler>());
         }
     }

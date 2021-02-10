@@ -4,13 +4,13 @@ namespace HairLetLoose
 {
     public class ActiveHairSim
     {
-        private bool paintedRigidity;
+        private bool usePaintedRigidity;
         private float weight;
         private float drag;
-        private float gravity;
+        private float gravityMultiplier;
         private float mainRigidity;
         private float tipRigidity;
-        private float styleCling;
+        private float cling;
 
         private HairSimControl hairSim;
 
@@ -36,13 +36,13 @@ namespace HairLetLoose
         public ActiveHairSim(HairSimControl hairSim)
         {
             this.hairSim = hairSim;
-            paintedRigidity = hairSim.GetBoolParamValue("usePaintedRigidity");
+            usePaintedRigidity = hairSim.GetBoolParamValue("usePaintedRigidity");
             weight = hairSim.GetFloatParamValue("weight");
             drag = hairSim.GetFloatParamValue("drag");
-            gravity = hairSim.GetFloatParamValue("gravityMultiplier");
+            gravityMultiplier = hairSim.GetFloatParamValue("gravityMultiplier");
             mainRigidity = hairSim.GetFloatParamValue("mainRigidity");
             tipRigidity = hairSim.GetFloatParamValue("tipRigidity");
-            styleCling = hairSim.GetFloatParamValue("cling");
+            cling = hairSim.GetFloatParamValue("cling");
 
             mainRigidityStorable = hairSim.GetFloatJSONParam("mainRigidity");
             tipRigidityStorable = hairSim.GetFloatJSONParam("tipRigidity");
@@ -171,7 +171,7 @@ namespace HairLetLoose
         {
             settingInfo = "";
 
-            if(paintedRigidity)
+            if(usePaintedRigidity)
             {
                 settingInfo = $"{settingInfo}\n- disabled painted rigidity";
                 hairSim.SetBoolParamValue("usePaintedRigidity", false);
@@ -191,10 +191,10 @@ namespace HairLetLoose
                 hairSim.SetFloatParamValue("drag", adjustedDrag);
             }
 
-            float adjustedGravity = Mathf.Clamp((float) gravity, 0.900f, 1.100f);
-            if(gravity != adjustedGravity)
+            float adjustedGravity = Mathf.Clamp((float) gravityMultiplier, 0.900f, 1.100f);
+            if(gravityMultiplier != adjustedGravity)
             {
-                settingInfo = $"{settingInfo}\n- gravity multiplier set to {adjustedGravity} (was {Calc.RoundToDecimals(gravity, 1000f)})";
+                settingInfo = $"{settingInfo}\n- gravity multiplier set to {adjustedGravity} (was {Calc.RoundToDecimals(gravityMultiplier, 1000f)})";
                 hairSim.SetFloatParamValue("gravityMultiplier", adjustedGravity);
             }
 
@@ -221,14 +221,14 @@ namespace HairLetLoose
             }
             maxTipRigidity.defaultVal = maxTipRigidity.val;
 
-            if(styleCling > maxStyleCling.max)
+            if(cling > maxStyleCling.max)
             {
-                settingInfo = $"{settingInfo}\n- style cling set to {maxStyleCling.max} (was {Calc.RoundToDecimals((float) styleCling, 1000f)})";
+                settingInfo = $"{settingInfo}\n- style cling set to {maxStyleCling.max} (was {Calc.RoundToDecimals((float) cling, 1000f)})";
                 maxStyleCling.val = maxStyleCling.max;
             }
             else
             {
-                maxStyleCling.val = styleCling;
+                maxStyleCling.val = cling;
             }
             maxStyleCling.defaultVal = maxStyleCling.val;
             minStyleCling.val = maxStyleCling.val;
@@ -272,13 +272,13 @@ namespace HairLetLoose
                 return;
             }
 
-            hairSim.SetBoolParamValue("usePaintedRigidity", paintedRigidity);
+            hairSim.SetBoolParamValue("usePaintedRigidity", usePaintedRigidity);
             hairSim.SetFloatParamValue("weight", weight);
             hairSim.SetFloatParamValue("drag", drag);
-            hairSim.SetFloatParamValue("gravity", gravity);
+            hairSim.SetFloatParamValue("gravityMultiplier", gravityMultiplier);
             hairSim.SetFloatParamValue("mainRigidity", mainRigidity);
             hairSim.SetFloatParamValue("tipRigidity", tipRigidity);
-            hairSim.SetFloatParamValue("cling", styleCling);
+            hairSim.SetFloatParamValue("cling", cling);
         }
     }
 }
