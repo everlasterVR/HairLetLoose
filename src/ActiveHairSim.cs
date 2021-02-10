@@ -181,21 +181,21 @@ namespace HairLetLoose
                 hairSim.SetBoolParamValue("usePaintedRigidity", false);
             }
 
-            float adjustedWeight = Mathf.Clamp((float) weight, 1.350f, 1.650f);
+            float adjustedWeight = Mathf.Clamp(weight, 1.350f, 1.650f);
             if(weight != adjustedWeight)
             {
                 settingInfo = $"{settingInfo}\n- weight set to {adjustedWeight} (was {Calc.RoundToDecimals(weight, 1000f)})";
                 hairSim.SetFloatParamValue("weight", adjustedWeight);
             }
 
-            float adjustedDrag = Mathf.Clamp((float) drag, 0.050f, 0.150f);
+            float adjustedDrag = Mathf.Clamp(drag, 0.050f, 0.150f);
             if(drag != adjustedDrag)
             {
                 settingInfo = $"{settingInfo}\n- drag set to {adjustedDrag} (was {Calc.RoundToDecimals(drag, 1000f)})";
                 hairSim.SetFloatParamValue("drag", adjustedDrag);
             }
 
-            float adjustedGravity = Mathf.Clamp((float) gravityMultiplier, 0.900f, 1.100f);
+            float adjustedGravity = Mathf.Clamp(gravityMultiplier, 0.900f, 1.100f);
             if(gravityMultiplier != adjustedGravity)
             {
                 settingInfo = $"{settingInfo}\n- gravity multiplier set to {adjustedGravity} (was {Calc.RoundToDecimals(gravityMultiplier, 1000f)})";
@@ -216,7 +216,7 @@ namespace HairLetLoose
 
             if(tipRigidity > maxTipRigidity.max)
             {
-                settingInfo = $"{settingInfo}\n- tip rigidity set to {maxTipRigidity.max} (was {Calc.RoundToDecimals((float) tipRigidity, 1000f)})";
+                settingInfo = $"{settingInfo}\n- tip rigidity set to {maxTipRigidity.max} (was {Calc.RoundToDecimals(tipRigidity, 1000f)})";
                 maxTipRigidity.val = maxTipRigidity.max;
             }
             else
@@ -227,7 +227,7 @@ namespace HairLetLoose
 
             if(cling > maxStyleCling.max)
             {
-                settingInfo = $"{settingInfo}\n- style cling set to {maxStyleCling.max} (was {Calc.RoundToDecimals((float) cling, 1000f)})";
+                settingInfo = $"{settingInfo}\n- style cling set to {maxStyleCling.max} (was {Calc.RoundToDecimals(cling, 1000f)})";
                 maxStyleCling.val = maxStyleCling.max;
             }
             else

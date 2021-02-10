@@ -56,6 +56,7 @@ namespace HairLetLoose
                 RefreshUI
             );
         }
+
         private void RefreshUI(string option)
         {
             foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
