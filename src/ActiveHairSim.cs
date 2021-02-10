@@ -234,8 +234,8 @@ namespace HairLetLoose
             minStyleCling.val = maxStyleCling.val;
             minStyleCling.defaultVal = minStyleCling.val;
 
-            UpdateUpperLimit(upperLimit);
-            UpdateLowerLimit(lowerLimit);
+            UpdateUpperLimit(upperAngleLimit.val);
+            UpdateLowerLimit(lowerAngleLimit.val);
         }
 
         private void UpdateUpperLimit(float val)
