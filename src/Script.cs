@@ -53,16 +53,16 @@ namespace HairLetLoose
             titleUITextField.height = 100;
             titleUIText.SetVal($"<b>{nameof(HairLetLoose)}</b>\n<size=26>v{pluginVersion}</size>");
 
-            UISliderStore.Init();
-            NewSlider(UISliderStore.dummyLowerAngleLimit, valueFormat: "F0");
-            NewSlider(UISliderStore.dummyUpperAngleLimit, valueFormat: "F0");
-            NewSlider(UISliderStore.dummyMinMainRigidity, valueFormat: "F3");
-            NewSlider(UISliderStore.dummyMaxMainRigidity, valueFormat: "F3");
-            NewSlider(UISliderStore.dummyMinTipRigidity, valueFormat: "F4");
-            NewSlider(UISliderStore.dummyMaxTipRigidity, valueFormat: "F4");
-            NewSlider(UISliderStore.dummyMinStyleCling, valueFormat: "F2");
-            NewSlider(UISliderStore.dummyMaxStyleCling, valueFormat: "F2");
-            UISliderStore.StoreSliders();
+            UIElementStore.Init();
+            NewSlider(UIElementStore.dummyLowerAngleLimit, valueFormat: "F0");
+            NewSlider(UIElementStore.dummyUpperAngleLimit, valueFormat: "F0");
+            NewSlider(UIElementStore.dummyMinMainRigidity, valueFormat: "F3");
+            NewSlider(UIElementStore.dummyMaxMainRigidity, valueFormat: "F3");
+            NewSlider(UIElementStore.dummyMinTipRigidity, valueFormat: "F4");
+            NewSlider(UIElementStore.dummyMaxTipRigidity, valueFormat: "F4");
+            NewSlider(UIElementStore.dummyMinStyleCling, valueFormat: "F2");
+            NewSlider(UIElementStore.dummyMaxStyleCling, valueFormat: "F2");
+            UIElementStore.StoreSliders();
         }
 
         private void InitPluginUIRight()
@@ -71,23 +71,30 @@ namespace HairLetLoose
             UIDynamicPopup hairUISelectPopup = CreatePopup(hairSimHandler.hairUISelect, rightSide: true);
             hairUISelectPopup.height = 100;
 
+            UIElementStore.toggleEnableButton = CreateButton("", rightSide: true);
+            UIElementStore.toggleEnableButton.height = 50;
+            UIElementStore.toggleEnableButton.button.onClick.AddListener(() => {
+                bool? result = hairSimHandler.ToggleEnableCurrent();
+                UIElementStore.UpdateToggleButtonText(result);
+            });
+
             JSONStorableString helpUIText = new JSONStorableString("helpText", "");
             UIDynamicTextField helpUITextField = CreateTextField(helpUIText, rightSide: true);
             helpUITextField.UItext.fontSize = 26;
-            helpUITextField.height = 255;
-            helpUIText.SetVal($"<b><size=30>How it works</size></b>\n\n" +
+            helpUITextField.height = 325;
+            helpUIText.SetVal($"<b><size=30>\nHow it works</size></b>\n\n" +
                 $"Hair is the least rigid at the lower limit angle, and the most rigid at the upper limit angle.\n\n" +
                 $"90° is upright, 0° is horizontal, -90° is upside down.");
+
+            hairSimHandler.settingsInfoUIText = new JSONStorableString("logText", "");
+            UIDynamicTextField logUITextField = CreateTextField(hairSimHandler.settingsInfoUIText, rightSide: true);
+            logUITextField.UItext.fontSize = 26;
+            logUITextField.height = 390;
 
             hairSimHandler.valuesUIText = new JSONStorableString("valuesText", "");
             UIDynamicTextField valuesUITextField = CreateTextField(hairSimHandler.valuesUIText, rightSide: true);
             valuesUITextField.UItext.fontSize = 26;
             valuesUITextField.height = 255;
-
-            hairSimHandler.settingsInfoUIText = new JSONStorableString("logText", "");
-            UIDynamicTextField logUITextField = CreateTextField(hairSimHandler.settingsInfoUIText, rightSide: true);
-            logUITextField.UItext.fontSize = 26;
-            logUITextField.height = 525;
         }
 
         private void NewSlider(

@@ -83,7 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\ActiveHairSim.cs" />
-    <Compile Include="src\UISliderStore.cs" />
+    <Compile Include="src\UIElementStore.cs" />
     <Compile Include="src\HairSimHandler.cs" />
     <Compile Include="src\Script.cs" />
     <Compile Include="src\Utils\Calc.cs" />

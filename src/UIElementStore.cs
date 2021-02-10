@@ -2,7 +2,7 @@
 
 namespace HairLetLoose
 {
-    public static class UISliderStore
+    public static class UIElementStore
     {
         public static JSONStorableFloat dummyLowerAngleLimit;
         public static JSONStorableFloat dummyUpperAngleLimit;
@@ -21,6 +21,8 @@ namespace HairLetLoose
         public static Slider maxTipRigiditySlider;
         public static Slider minStyleClingSlider;
         public static Slider maxStyleClingSlider;
+
+        public static UIDynamicButton toggleEnableButton;
 
         public static void Init()
         {
@@ -67,16 +69,19 @@ namespace HairLetLoose
             maxStyleCling.slider = maxStyleClingSlider;
         }
 
-        public static void RestoreSliders()
+        public static void UpdateToggleButtonText(bool? result)
         {
-            dummyLowerAngleLimit.slider = lowerAngleLimitSlider;
-            dummyUpperAngleLimit.slider = upperAngleLimitSlider;
-            dummyMinMainRigidity.slider = minMainRigiditySlider;
-            dummyMaxMainRigidity.slider = maxMainRigiditySlider;
-            dummyMinTipRigidity.slider = minTipRigiditySlider;
-            dummyMaxTipRigidity.slider = maxTipRigiditySlider;
-            dummyMinStyleCling.slider = minStyleClingSlider;
-            dummyMaxStyleCling.slider = maxStyleClingSlider;
+            if(result.HasValue)
+            {
+                if(result.Value)
+                {
+                    toggleEnableButton.label = "Deactivate current hairstyle";
+                }
+                else
+                {
+                    toggleEnableButton.label = "Activate current hairstyle";
+                }
+            }
         }
 
         public static JSONStorableFloat NewLowerAngleLimitStorable()

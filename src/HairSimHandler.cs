@@ -52,7 +52,7 @@ namespace HairLetLoose
                 "Hair select",
                 activeHairSims.Keys.ToList(),
                 defaultOption,
-                "Current hairstyle",
+                "Selected hairstyle",
                 RefreshUI
             );
         }
@@ -69,7 +69,12 @@ namespace HairLetLoose
 
             if(activeHairSims.ContainsKey(option))
             {
-                activeHairSims[option].InitSliders();
+                ActiveHairSim current = activeHairSims[option];
+                current.InitSliders();
+                if(current.wasLetLoose)
+                {
+                   UIElementStore.UpdateToggleButtonText(current.enabled);
+                }
             }
         }
 
@@ -191,11 +196,13 @@ namespace HairLetLoose
 
             try
             {
+                activeHairSim.enabled = true;
                 activeHairSim.LetLoose();
+                UIElementStore.UpdateToggleButtonText(true);
             }
             catch(Exception e)
             {
-                Log.Message($"LetHairLooseInternal failed! {e}");
+                Log.Error($"Exception caught: {e}", nameof(HairSimHandler));
                 throw;
             }
 
@@ -214,7 +221,10 @@ namespace HairLetLoose
             float tiltY = (1 + Vector3.Dot(head.up, Vector3.up)) / 2; // 1 = upright, 0 = upside down
             foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
             {
-                it.Value.UpdatePhysics(tiltY);
+                if (it.Value.enabled)
+                {
+                    it.Value.UpdatePhysics(tiltY);
+                }
             }
             UpdateValuesUIText(tiltY);
         }
@@ -222,7 +232,7 @@ namespace HairLetLoose
         private void UpdateValuesUIText(float tiltY)
         {
             int angleDegrees = Mathf.RoundToInt((tiltY * 180) - 90);
-            string text = $"<b><size=30>Current values</size></b>\n\n" +
+            string text = $"<b><size=30>\nCurrent values</size></b>\n\n" +
                 $"Angle: {angleDegrees}°";
 
             if(activeHairSims.ContainsKey(hairUISelect.val))
@@ -232,6 +242,31 @@ namespace HairLetLoose
             }
 
             valuesUIText.SetVal(text);
+        }
+
+        public bool? ToggleEnableCurrent()
+        {
+            try
+            {
+                ActiveHairSim activeHairSim = activeHairSims[hairUISelect.val];
+                if(activeHairSim.enabled)
+                {
+                    activeHairSim.enabled = false;
+                    activeHairSim.RestoreOriginalPhysics();
+                }
+                else
+                {
+                    activeHairSim.enabled = true;
+                    activeHairSim.LetLoose();
+                }
+
+                return activeHairSim.enabled;
+            }
+            catch(Exception)
+            {
+            }
+
+            return null;
         }
 
         public void OnDisable()

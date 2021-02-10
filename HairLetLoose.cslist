@@ -3,4 +3,4 @@ src\Utils\Log.cs
 src\ActiveHairSim.cs
 src\HairSimHandler.cs
 src\Script.cs
-src\UISliderStore.cs
+src\UIElementStore.cs

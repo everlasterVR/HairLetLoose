@@ -32,6 +32,7 @@ namespace HairLetLoose
 
         public bool hasSliders = false;
         public bool wasLetLoose = false;
+        public bool enabled = false;
         public string settingInfo;
 
         public ActiveHairSim(HairSimControl hairSim)
@@ -55,20 +56,20 @@ namespace HairLetLoose
 
         public void InitStorables()
         {
-            lowerAngleLimit = UISliderStore.NewLowerAngleLimitStorable();
-            upperAngleLimit = UISliderStore.NewUpperAngleLimitStorable();
-            minMainRigidity = UISliderStore.NewMinMainRigidityStorable();
-            maxMainRigidity = UISliderStore.NewMaxMainRigidityStorable();
-            minTipRigidity = UISliderStore.NewMinTipRigidityStorable();
-            maxTipRigidity = UISliderStore.NewMaxTipRigidityStorable();
-            minStyleCling = UISliderStore.NewMinStyleClingStorable();
-            maxStyleCling = UISliderStore.NewMaxStyleClingStorable();
+            lowerAngleLimit = UIElementStore.NewLowerAngleLimitStorable();
+            upperAngleLimit = UIElementStore.NewUpperAngleLimitStorable();
+            minMainRigidity = UIElementStore.NewMinMainRigidityStorable();
+            maxMainRigidity = UIElementStore.NewMaxMainRigidityStorable();
+            minTipRigidity = UIElementStore.NewMinTipRigidityStorable();
+            maxTipRigidity = UIElementStore.NewMaxTipRigidityStorable();
+            minStyleCling = UIElementStore.NewMinStyleClingStorable();
+            maxStyleCling = UIElementStore.NewMaxStyleClingStorable();
         }
 
         public void InitSliders()
         {
             hasSliders = true;
-            UISliderStore.ApplySliders(
+            UIElementStore.ApplySliders(
                 lowerAngleLimit,
                 upperAngleLimit,
                 minMainRigidity,
@@ -287,7 +288,7 @@ namespace HairLetLoose
 
         private string FormatValue(JSONStorableFloat storable, JSONStorableFloat min, JSONStorableFloat max)
         {
-            string text = $"{storable.val}";
+            string text = $"{Calc.RoundToDecimals(storable.val, 1000f)}";
             if(min.val == max.val)
             {
                 return text;
