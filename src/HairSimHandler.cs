@@ -17,7 +17,6 @@ namespace HairLetLoose
         private float timeSinceLastUpdate;
         private float updateFrequency = 1/30f;
 
-        private string defaultOption = "<i>Select...</i>";
         private Dictionary<string, ActiveHairSim> activeHairSims;
 
         private Transform head;
@@ -33,10 +32,6 @@ namespace HairLetLoose
             waitCounter = 0;
             timeSinceLastUpdate = 0f;
             activeHairSims = new Dictionary<string, ActiveHairSim>();
-            if (hairUISelect != null)
-            {
-                hairUISelect.val = defaultOption;
-            }
         }
 
         public void Init(Atom containingAtom)
@@ -51,7 +46,7 @@ namespace HairLetLoose
             hairUISelect = new JSONStorableStringChooser(
                 "Hair select",
                 activeHairSims.Keys.ToList(),
-                defaultOption,
+                "",
                 "Selected hairstyle",
                 RefreshUI
             );
@@ -164,9 +159,9 @@ namespace HairLetLoose
             hairUISelect.choices = activeHairSims.Keys.ToList();
             if(activeHairSims.Count == 0)
             {
-                hairUISelect.val = defaultOption;
+                hairUISelect.val = "";
             }
-            else if(hairUISelect.val == defaultOption)
+            else if(hairUISelect.val == "")
             {
                 string option = activeHairSims.First().Key;
                 if(!string.Equals(hairUISelect.val, option))
