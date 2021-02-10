@@ -75,11 +75,11 @@ namespace HairLetLoose
             {
                 if(result.Value)
                 {
-                    toggleEnableButton.label = "Deactivate current hairstyle";
+                    toggleEnableButton.label = "Disable for selected hairstyle";
                 }
                 else
                 {
-                    toggleEnableButton.label = "Activate current hairstyle";
+                    toggleEnableButton.label = "Enable for selected hairstyle";
                 }
             }
         }

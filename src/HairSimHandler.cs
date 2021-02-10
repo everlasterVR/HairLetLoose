@@ -163,11 +163,8 @@ namespace HairLetLoose
             }
             else if(hairUISelect.val == "")
             {
-                string option = activeHairSims.First().Key;
-                if(!string.Equals(hairUISelect.val, option))
-                {
-                    hairUISelect.val = option;
-                }
+                hairUISelect.val = hairUISelect.choices.First();
+                hairUISelect.label = $"Selected\n(total: {activeHairSims.Count})";
             }
         }
 
