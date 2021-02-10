@@ -30,6 +30,7 @@ namespace HairLetLoose
         private float upperLimit;
         private float lowerLimit;
 
+        public bool hasSliders = false;
         public bool wasLetLoose = false;
         public string settingInfo;
 
@@ -66,6 +67,7 @@ namespace HairLetLoose
 
         public void InitSliders()
         {
+            hasSliders = true;
             UISliderStore.ApplySliders(
                 lowerAngleLimit,
                 upperAngleLimit,
@@ -148,6 +150,7 @@ namespace HairLetLoose
 
         public void UnsetSliders()
         {
+            hasSliders = false;
             lowerAngleLimit.slider.onValueChanged.RemoveAllListeners();
             upperAngleLimit.slider.onValueChanged.RemoveAllListeners();
             minMainRigidity.slider.onValueChanged.RemoveAllListeners();
@@ -169,6 +172,7 @@ namespace HairLetLoose
 
         public void LetLoose()
         {
+            wasLetLoose = true;
             settingInfo = "";
 
             if(usePaintedRigidity)

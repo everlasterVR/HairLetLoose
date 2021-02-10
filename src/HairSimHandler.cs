@@ -53,49 +53,22 @@ namespace HairLetLoose
                 activeHairSims.Keys.ToList(),
                 defaultOption,
                 "Current hairstyle",
-                LetHairLoose
+                RefreshUI
             );
         }
-
-        private void RefreshHairOptions()
+        private void RefreshUI(string option)
         {
-            foreach(DAZHairGroup it in hairItems)
+            foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
             {
-                string option = $"{it.creatorName} | {it.displayName}";
-                if(it.active && it.name == "CustomHairItem" && !activeHairSims.ContainsKey(option))
+                if(!string.Equals(it.Key, option) && it.Value.hasSliders)
                 {
-                    Log.Message($"{option} is active and not yet in activeHairSims. Adding new!");
-                    HairSimControl hairSim = it.GetComponentInChildren<HairSimControl>();
-                    activeHairSims.Add(option, new ActiveHairSim(hairSim));
-                }
-                else if(!it.active && activeHairSims.ContainsKey(option))
-                {
-                    Log.Message($"{option} is not active and still in activeHairSims. Restoring original physics and removing!");
-                    activeHairSims[option].RestoreOriginalPhysics();
-                    activeHairSims.Remove(option);
+                    it.Value.UnsetSliders();
                 }
             }
 
-            if(hairUISelect != null)
+            if(activeHairSims.ContainsKey(option))
             {
-                hairUISelect.choices = activeHairSims.Keys.ToList();
-                TryAutoSelect();
-            }
-        }
-
-        private void TryAutoSelect()
-        {
-            if(activeHairSims.Count == 0)
-            {
-                hairUISelect.val = defaultOption;
-            }
-            else if(activeHairSims.Count == 1)
-            {
-                string option = activeHairSims.First().Key;
-                if(!string.Equals(hairUISelect.val, option))
-                {
-                    hairUISelect.val = option;
-                }
+                activeHairSims[option].InitSliders();
             }
         }
 
@@ -126,41 +99,92 @@ namespace HairLetLoose
             //}
         }
 
-        private void LetHairLoose(string option)
+        // TODO setval "" when no active hair selected
+        // TODO checkbox to select if plugin should remember hair settings during session?
+        //public void NullifyCurrent()
+        //{
+        //    settingsInfoUIText.SetVal("");
+        //    hairSimOld = null;
+        //}
+
+        public void Update()
         {
-            RefreshUI(option);
-            if(string.Equals(option, defaultOption))
+            if(enableCheck)
             {
-                return;
-            }
-
-            ActiveHairSim activeHairSim = activeHairSims[option];
-            if(activeHairSim.wasLetLoose)
-            {
-                return;
-            }
-
-            activeHairSim.wasLetLoose = true;
-            StartCoroutine(LetHairLooseInternal(activeHairSim));
-        }
-
-        private void RefreshUI(string option)
-        {
-            foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
-            {
-                if(!string.Equals(it.Key, option))
+                timeSinceLastRefresh += Time.deltaTime;
+                if(timeSinceLastRefresh >= refreshFrequency)
                 {
-                    it.Value.UnsetSliders();
+                    timeSinceLastRefresh -= refreshFrequency;
+                    RefreshHairOptions();
+                    TryAutoSelect();
+                    InitActiveHairSims();
                 }
             }
 
-            if(activeHairSims.ContainsKey(option))
+            timeSinceLastUpdate += Time.deltaTime;
+            if(timeSinceLastUpdate >= updateFrequency)
             {
-                activeHairSims[option].InitSliders();
+                timeSinceLastUpdate -= updateFrequency;
+                UpdateAllPhysics();
+            }
+        }
+        private void RefreshHairOptions()
+        {
+            foreach(DAZHairGroup it in hairItems)
+            {
+                string option = $"{it.creatorName} | {it.displayName}";
+                if(it.active && it.name == "CustomHairItem" && !activeHairSims.ContainsKey(option))
+                {
+                    Log.Message($"{option} is active and not yet in activeHairSims. Adding new!");
+                    HairSimControl hairSim = it.GetComponentInChildren<HairSimControl>();
+                    activeHairSims.Add(option, new ActiveHairSim(hairSim));
+                }
+                else if(!it.active && activeHairSims.ContainsKey(option))
+                {
+                    Log.Message($"{option} is not active and still in activeHairSims. Restoring original physics and removing!");
+                    activeHairSims[option].RestoreOriginalPhysics();
+                    activeHairSims.Remove(option);
+                }
             }
         }
 
-        private IEnumerator LetHairLooseInternal(ActiveHairSim activeHairSim)
+        private void TryAutoSelect()
+        {
+            if(hairUISelect == null)
+            {
+                return;
+            }
+
+            hairUISelect.choices = activeHairSims.Keys.ToList();
+            if(activeHairSims.Count == 0)
+            {
+                hairUISelect.val = defaultOption;
+            }
+            else if(hairUISelect.val == defaultOption)
+            {
+                string option = activeHairSims.First().Key;
+                if(!string.Equals(hairUISelect.val, option))
+                {
+                    hairUISelect.val = option;
+                }
+            }
+        }
+
+        private void InitActiveHairSims()
+        {
+            foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
+            {
+                ActiveHairSim activeHairSim = it.Value;
+                if(activeHairSim.wasLetLoose)
+                {
+                    return;
+                }
+
+                StartCoroutine(LetHairLoose(activeHairSim));
+            }
+        }
+
+        private IEnumerator LetHairLoose(ActiveHairSim activeHairSim)
         {
             yield return new WaitForEndOfFrame();
 
@@ -184,34 +208,6 @@ namespace HairLetLoose
             //settingsInfoUIText.SetVal($"<b><size=30>Changes to hair physics on load</size></b>\n{settingInfo}");
         }
 
-        // TODO setval "" when no active hair selected
-        // TODO checkbox to select if plugin should remember hair settings during session?
-        //public void NullifyCurrent()
-        //{
-        //    settingsInfoUIText.SetVal("");
-        //    hairSimOld = null;
-        //}
-
-        public void Update()
-        {
-            if(enableCheck)
-            {
-                timeSinceLastRefresh += Time.deltaTime;
-                if(timeSinceLastRefresh >= refreshFrequency)
-                {
-                    timeSinceLastRefresh -= refreshFrequency;
-                    RefreshHairOptions();
-                }
-            }
-
-            timeSinceLastUpdate += Time.deltaTime;
-            if(timeSinceLastUpdate >= updateFrequency)
-            {
-                timeSinceLastUpdate -= updateFrequency;
-                UpdateAllPhysics();
-            }
-        }
-
         private void UpdateAllPhysics()
         {
             float tiltY = (1 + Vector3.Dot(head.up, Vector3.up)) / 2; // 1 = upright, 0 = upside down
@@ -222,7 +218,6 @@ namespace HairLetLoose
             UpdateValuesUIText(tiltY);
         }
 
-        // TODO get status from current active hair sim
         private void UpdateValuesUIText(float tiltY)
         {
             int angleDegrees = Mathf.RoundToInt((tiltY * 180) - 90);
@@ -241,8 +236,6 @@ namespace HairLetLoose
         public void OnDisable()
         {
             RestoreAllOriginalPhysics();
-            //hairSimHandler.NullifyCurrent();
-
         }
 
         public void OnDestroy()
