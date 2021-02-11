@@ -74,8 +74,11 @@ namespace HairLetLoose
             UIElementStore.toggleEnableButton = CreateButton("", rightSide: true);
             UIElementStore.toggleEnableButton.height = 50;
             UIElementStore.toggleEnableButton.button.onClick.AddListener(() => {
-                bool? result = hairSimHandler.ToggleEnableCurrent();
-                UIElementStore.UpdateToggleButtonText(result);
+                if(enabled)
+                {
+                    bool? result = hairSimHandler.ToggleEnableCurrent();
+                    UIElementStore.UpdateToggleButtonText(result);
+                }
             });
 
             JSONStorableString helpUIText = new JSONStorableString("helpText", "");

@@ -82,6 +82,10 @@ namespace HairLetLoose
                     toggleEnableButton.label = "Enable for selected hairstyle";
                 }
             }
+            else
+            {
+                toggleEnableButton.label = "";
+            }
         }
 
         public static JSONStorableFloat NewLowerAngleLimitStorable()

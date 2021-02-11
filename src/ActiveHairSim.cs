@@ -33,6 +33,7 @@ namespace HairLetLoose
         public bool hasSliders = false;
         public bool wasLetLoose = false;
         public bool enabled = false;
+        public bool forceDisabled = false;
         public string settingInfo;
 
         public ActiveHairSim(HairSimControl hairSim)
@@ -51,7 +52,6 @@ namespace HairLetLoose
             clingStorable = hairSim.GetFloatJSONParam("cling");
 
             InitStorables();
-            InitSliders();
         }
 
         public void InitStorables()
@@ -277,6 +277,11 @@ namespace HairLetLoose
 
         public void UpdatePhysics(float tiltY)
         {
+            if(!enabled || forceDisabled)
+            {
+                return;
+            }
+
             float baseVal = Mathf.Clamp(Mathf.Lerp(lowerLimit, upperLimit, tiltY), 0f, 1f); // map tilt to lower-upper range, clamp to 0-1
             mainRigidityStorable.val = Calc.RoundToDecimals(Mathf.Lerp(minMainRigidity.val, maxMainRigidity.val, baseVal), 1000f);
             tipRigidityStorable.val = Calc.RoundToDecimals(Mathf.Lerp(minTipRigidity.val, maxTipRigidity.val, baseVal), 10000f);

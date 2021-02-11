@@ -8,12 +8,11 @@ namespace HairLetLoose
 {
     public class HairSimHandler : MonoBehaviour
     {
-        private bool enableCheck = true;
         private int waitCounter;
         private int waitSeconds = 2;
         private int waitLimit = 60;
-        private float timeSinceLastRefresh;
-        private float refreshFrequency = 1f;
+        private float timeSinceLastCheck;
+        private float checkFrequency = 1f;
         private float timeSinceLastUpdate;
         private float updateFrequency = 1/30f;
 
@@ -31,7 +30,15 @@ namespace HairLetLoose
         {
             waitCounter = 0;
             timeSinceLastUpdate = 0f;
-            activeHairSims = new Dictionary<string, ActiveHairSim>();
+            if(activeHairSims != null && activeHairSims.Count > 0)
+            {
+                foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
+                {
+                    it.Value.forceDisabled = false;
+                    it.Value.ReLetLoose();
+                }
+                StartCoroutine(RunCheck());
+            }
         }
 
         public void Init(Atom containingAtom)
@@ -39,6 +46,8 @@ namespace HairLetLoose
             head = containingAtom.GetStorableByID("head").transform;
             DAZCharacterSelector geometry = containingAtom.GetComponentInChildren<DAZCharacterSelector>();
             hairItems = geometry.hairItems;
+            activeHairSims = new Dictionary<string, ActiveHairSim>();
+            StartCoroutine(RunCheck());
         }
 
         public void CreateHairSelect()
@@ -54,22 +63,25 @@ namespace HairLetLoose
 
         private void RefreshUI(string option)
         {
-            foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
-            {
-                if(!string.Equals(it.Key, option) && it.Value.hasSliders)
-                {
-                    it.Value.UnsetSliders();
-                }
-            }
+            activeHairSims.ToList()
+                .Where(kvp => kvp.Key != option && kvp.Value.hasSliders).ToList()
+                .ForEach(kvp => kvp.Value.UnsetSliders());
 
             if(activeHairSims.ContainsKey(option))
             {
                 ActiveHairSim current = activeHairSims[option];
-                current.InitSliders();
+                if(!current.hasSliders)
+                {
+                    current.InitSliders();
+                }
                 if(current.wasLetLoose)
                 {
-                   UIElementStore.UpdateToggleButtonText(current.enabled);
+                    UIElementStore.UpdateToggleButtonText(current.enabled);
                 }
+            }
+            else
+            {
+                UIElementStore.UpdateToggleButtonText(null);
             }
         }
 
@@ -110,16 +122,11 @@ namespace HairLetLoose
 
         public void Update()
         {
-            if(enableCheck)
+            timeSinceLastCheck += Time.deltaTime;
+            if(timeSinceLastCheck >= checkFrequency)
             {
-                timeSinceLastRefresh += Time.deltaTime;
-                if(timeSinceLastRefresh >= refreshFrequency)
-                {
-                    timeSinceLastRefresh -= refreshFrequency;
-                    RefreshHairOptions();
-                    TryAutoSelect();
-                    InitActiveHairSims();
-                }
+                timeSinceLastCheck -= checkFrequency;
+                StartCoroutine(RunCheck());
             }
 
             timeSinceLastUpdate += Time.deltaTime;
@@ -129,6 +136,26 @@ namespace HairLetLoose
                 UpdateAllPhysics();
             }
         }
+
+        private IEnumerator RunCheck()
+        {
+            while(activeHairSims == null)
+            {
+                yield return null;
+            }
+
+            try
+            {
+                RefreshHairOptions();
+                MaybeAutoSelect();
+                InitActiveHairSims();
+            }
+            catch(Exception e)
+            {
+                //Log.Error($"Error: {e}", nameof(HairSimHandler));
+            }
+        }
+
         private void RefreshHairOptions()
         {
             foreach(DAZHairGroup it in hairItems)
@@ -149,7 +176,7 @@ namespace HairLetLoose
             }
         }
 
-        private void TryAutoSelect()
+        private void MaybeAutoSelect()
         {
             if(hairUISelect == null)
             {
@@ -161,7 +188,7 @@ namespace HairLetLoose
             {
                 hairUISelect.val = "";
             }
-            else if(hairUISelect.val == "")
+            else if(hairUISelect.val == "" || !activeHairSims.ContainsKey(hairUISelect.val))
             {
                 hairUISelect.val = hairUISelect.choices.First();
             }
@@ -213,10 +240,7 @@ namespace HairLetLoose
             float tiltY = (1 + Vector3.Dot(head.up, Vector3.up)) / 2; // 1 = upright, 0 = upside down
             foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
             {
-                if (it.Value.enabled)
-                {
-                    it.Value.UpdatePhysics(tiltY);
-                }
+                it.Value.UpdatePhysics(tiltY);
             }
             UpdateValuesUIText(tiltY);
         }
@@ -263,18 +287,19 @@ namespace HairLetLoose
 
         public void OnDisable()
         {
-            RestoreAllOriginalPhysics();
+            ForceDisableAllActiveHairSims();
         }
 
         public void OnDestroy()
         {
-            RestoreAllOriginalPhysics();
+            ForceDisableAllActiveHairSims();
         }
 
-        private void RestoreAllOriginalPhysics()
+        private void ForceDisableAllActiveHairSims()
         {
             foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
             {
+                it.Value.forceDisabled = true;
                 it.Value.RestoreOriginalPhysics();
             }
         }
