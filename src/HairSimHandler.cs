@@ -164,8 +164,8 @@ namespace HairLetLoose
             else if(hairUISelect.val == "")
             {
                 hairUISelect.val = hairUISelect.choices.First();
-                hairUISelect.label = $"Selected\n(total: {activeHairSims.Count})";
             }
+            hairUISelect.label = $"Selected{(hairUISelect.choices.Count > 1 ? $"\n(total: {activeHairSims.Count})" : "")}";
         }
 
         private void InitActiveHairSims()
@@ -249,7 +249,7 @@ namespace HairLetLoose
                 else
                 {
                     activeHairSim.enabled = true;
-                    activeHairSim.LetLoose();
+                    activeHairSim.ReLetLoose();
                 }
 
                 return activeHairSim.enabled;
