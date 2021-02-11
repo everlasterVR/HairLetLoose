@@ -312,28 +312,47 @@ namespace HairLetLoose
 
         public string GetStatus()
         {
-            return $"Main rigidity: {FormatValue(mainRigidityStorable, minMainRigidity, maxMainRigidity)}\n" +
-               $"Tip rigidity: {FormatValue(tipRigidityStorable, minTipRigidity, maxTipRigidity)}\n" +
-               $"Style cling: {FormatValue(clingStorable, minStyleCling, maxStyleCling)}";
+            return $"Main rigidity: {MainRigidityStatus()}\n" +
+               $"Tip rigidity: {TipRigidityStatus()}\n" +
+               $"Style cling: {ClingStatus()}";
         }
 
-        private string FormatValue(JSONStorableFloat storable, JSONStorableFloat min, JSONStorableFloat max)
+        private string MainRigidityStatus()
         {
-            string text = $"{Calc.RoundToDecimals(storable.val, 1000f)}";
+            return $"{Calc.RoundToDecimals(mainRigidityStorable.val, 1000f).ToString("0.000")}" +
+                $"{MinOrMax(mainRigidityStorable, minMainRigidity, maxMainRigidity)}";
+        }
+
+        private string TipRigidityStatus()
+        {
+            return $"{Calc.RoundToDecimals(tipRigidityStorable.val, 10000f).ToString("0.0000")}" +
+                $"{MinOrMax(tipRigidityStorable, minTipRigidity, maxTipRigidity)}";
+        }
+
+        private string ClingStatus()
+        {
+            return $"{Calc.RoundToDecimals(clingStorable.val, 100f).ToString("0.00")}" +
+                $"{MinOrMax(clingStorable, minStyleCling, maxStyleCling)}";
+        }
+
+        private string MinOrMax(JSONStorableFloat storable, JSONStorableFloat min, JSONStorableFloat max)
+        {
             if(min.val == max.val)
             {
-                return text;
+                return "";
+            }
+
+            if(storable.val <= min.val)
+            {
+                return " (min)";
             }
 
             if(storable.val >= max.val)
             {
-                text += " (highest)";
+                return " (max)";
             }
-            else if(storable.val <= min.val)
-            {
-                text += " (lowest)";
-            }
-            return text;
+
+            return "";
         }
     }
 }
