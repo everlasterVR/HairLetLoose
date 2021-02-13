@@ -26,9 +26,6 @@ namespace HairLetLoose
         private JSONStorableFloat minStyleCling;
         private JSONStorableFloat maxStyleCling;
 
-        private float upperLimit;
-        private float lowerLimit;
-
         public bool hasSliders = false;
         public bool wasLetLoose = false;
         public bool enabled = false;
@@ -84,9 +81,7 @@ namespace HairLetLoose
                 if(val > upperAngleLimit.val)
                 {
                     upperAngleLimit.val = val;
-                    UpdateUpperLimit(val);
                 }
-                UpdateLowerLimit(val);
             });
 
             upperAngleLimit.slider.onValueChanged.AddListener((float val) =>
@@ -94,9 +89,7 @@ namespace HairLetLoose
                 if(val < lowerAngleLimit.val)
                 {
                     lowerAngleLimit.val = val;
-                    UpdateLowerLimit(val);
                 }
-                UpdateUpperLimit(val);
             });
 
             minMainRigidity.slider.onValueChanged.AddListener((float val) =>
@@ -210,9 +203,6 @@ namespace HairLetLoose
             maxStyleCling.defaultVal = maxStyleCling.val;
             minStyleCling.val = maxStyleCling.val;
             minStyleCling.defaultVal = minStyleCling.val;
-
-            UpdateUpperLimit(upperAngleLimit.val);
-            UpdateLowerLimit(lowerAngleLimit.val);
         }
 
         private void DisablePaintedRigidity()
@@ -250,18 +240,6 @@ namespace HairLetLoose
             }
         }
 
-        private void UpdateUpperLimit(float val)
-        {
-            float amount = Mathf.Clamp(1 - (val + 90)/180, 0, 0.99f); //prevent division by 0
-            upperLimit = 1 + amount/(1 - amount);
-        }
-
-        private void UpdateLowerLimit(float val)
-        {
-            float amount = Mathf.Clamp(1 - (90 - val)/180, 0, 0.99f); //prevent division by 0
-            lowerLimit = -amount/(1 - amount);
-        }
-
         public void UpdatePhysics(float tiltY)
         {
             if(!enabled || forceDisabled)
@@ -269,7 +247,13 @@ namespace HairLetLoose
                 return;
             }
 
-            float baseVal = Mathf.Clamp(Mathf.Lerp(lowerLimit, upperLimit, tiltY), 0f, 1f); // map tilt to lower-upper range, clamp to 0-1
+            // map the tilt value from the lower-upper angle range into 0-1
+            // https://forum.unity.com/threads/mapping-or-scaling-values-to-a-new-range.180090/
+            float baseVal = Mathf.Lerp(0f, 1f, Mathf.InverseLerp(
+                lowerAngleLimit.val,
+                upperAngleLimit.val,
+                tiltY
+            ));
             mainRigidityStorable.val = Calc.RoundToDecimals(Mathf.Lerp(minMainRigidity.val, maxMainRigidity.val, baseVal), 1000f);
             tipRigidityStorable.val = Calc.RoundToDecimals(Mathf.Lerp(minTipRigidity.val, maxTipRigidity.val, baseVal), 10000f);
             clingStorable.val = Calc.RoundToDecimals(Mathf.Lerp(minStyleCling.val, maxStyleCling.val, baseVal), 100f);

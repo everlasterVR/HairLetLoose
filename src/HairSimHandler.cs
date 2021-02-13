@@ -248,7 +248,7 @@ namespace HairLetLoose
 
         private void UpdateAllPhysics()
         {
-            float tiltY = (1 + Vector3.Dot(head.up, Vector3.up)) / 2; // 1 = upright, 0 = upside down
+            float tiltY = 90 * Vector3.Dot(head.up, Vector3.up); // -90 = upside down, 90 = upright
             foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
             {
                 it.Value.UpdatePhysics(tiltY);
@@ -258,9 +258,8 @@ namespace HairLetLoose
 
         private void UpdateValuesUIText(float tiltY)
         {
-            int angleDegrees = Mathf.RoundToInt((tiltY * 180) - 90);
             string text = $"\n<b><size=30>Current values</size></b>\n\n" +
-                $"Angle: {angleDegrees}°";
+                $"Angle: {Mathf.RoundToInt(tiltY)}°";
 
             if(activeHairSims.ContainsKey(hairUISelect.val))
             {
