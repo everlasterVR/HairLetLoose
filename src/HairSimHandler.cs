@@ -83,6 +83,7 @@ namespace HairLetLoose
             else
             {
                 UIElementStore.UpdateToggleButtonText(null);
+                UIElementStore.ApplyDummySliders();
                 UpdateNotifications(reset: true);
             }
         }
@@ -155,9 +156,8 @@ namespace HairLetLoose
                 MaybeAutoSelect();
                 InitActiveHairSims();
             }
-            catch(Exception e)
+            catch(Exception)
             {
-                //Log.Error($"Error: {e}", nameof(HairSimHandler));
             }
         }
 
@@ -191,7 +191,7 @@ namespace HairLetLoose
             hairUISelect.choices = activeHairSims.Keys.ToList();
             if(activeHairSims.Count == 0)
             {
-                hairUISelect.val = "";
+                hairUISelect.val = "None";
             }
             else if(hairUISelect.val == "" || !activeHairSims.ContainsKey(hairUISelect.val))
             {
@@ -233,7 +233,7 @@ namespace HairLetLoose
             UpdateNotifications(activeHairSim.TrackPhysics());
         }
 
-        private void UpdateNotifications(string changes = "", bool reset = false)
+        public void UpdateNotifications(string changes = "", bool reset = false)
         {
             string header = $"\n<b><size=30>Physics settings info</size></b>";
             if(reset)

@@ -26,14 +26,14 @@ namespace HairLetLoose
 
         public static void Init()
         {
-            dummyLowerAngleLimit = NewLowerAngleLimitStorable();
-            dummyUpperAngleLimit = NewUpperAngleLimitStorable();
-            dummyMinMainRigidity = NewMinMainRigidityStorable();
-            dummyMaxMainRigidity = NewMaxMainRigidityStorable();
-            dummyMinTipRigidity = NewMinTipRigidityStorable();
-            dummyMaxTipRigidity = NewMaxTipRigidityStorable();
-            dummyMinStyleCling = NewMinStyleClingStorable();
-            dummyMaxStyleCling = NewMaxStyleClingStorable();
+            dummyLowerAngleLimit = NewLowerAngleLimitStorable(false);
+            dummyUpperAngleLimit = NewUpperAngleLimitStorable(false);
+            dummyMinMainRigidity = NewMinMainRigidityStorable(false);
+            dummyMaxMainRigidity = NewMaxMainRigidityStorable(false);
+            dummyMinTipRigidity = NewMinTipRigidityStorable(false);
+            dummyMaxTipRigidity = NewMaxTipRigidityStorable(false);
+            dummyMinStyleCling = NewMinStyleClingStorable(false);
+            dummyMaxStyleCling = NewMaxStyleClingStorable(false);
         }
 
         public static void StoreSliders()
@@ -69,6 +69,26 @@ namespace HairLetLoose
             maxStyleCling.slider = maxStyleClingSlider;
         }
 
+        public static void ApplyDummySliders()
+        {
+            dummyLowerAngleLimit.slider = lowerAngleLimitSlider;
+            dummyUpperAngleLimit.slider = upperAngleLimitSlider;
+            dummyMinMainRigidity.slider = minMainRigiditySlider;
+            dummyMaxMainRigidity.slider = maxMainRigiditySlider;
+            dummyMinTipRigidity.slider = minTipRigiditySlider;
+            dummyMaxTipRigidity.slider = maxTipRigiditySlider;
+            dummyMinStyleCling.slider = minStyleClingSlider;
+            dummyMaxStyleCling.slider = maxStyleClingSlider;
+            dummyLowerAngleLimit.slider.interactable = false;
+            dummyUpperAngleLimit.slider.interactable = false;
+            dummyMinMainRigidity.slider.interactable = false;
+            dummyMaxMainRigidity.slider.interactable = false;
+            dummyMinTipRigidity.slider.interactable = false;
+            dummyMaxTipRigidity.slider.interactable = false;
+            dummyMinStyleCling.slider.interactable = false;
+            dummyMaxStyleCling.slider.interactable = false;
+        }
+
         public static void UpdateToggleButtonText(bool? result)
         {
             string label = "Disable for selected hairstyle";
@@ -83,44 +103,76 @@ namespace HairLetLoose
             toggleEnableButton.label = label;
         }
 
-        public static JSONStorableFloat NewLowerAngleLimitStorable()
+        public static JSONStorableFloat NewLowerAngleLimitStorable(bool interactable = true)
         {
-            return new JSONStorableFloat("Lower limit <size=40>°</size>", 45f, -90f, 90f);
+            return new JSONStorableFloat(
+                "Lower limit <size=40>°</size>",
+                45f, -90f, 90f,
+                interactable: interactable
+            );
         }
 
-        public static JSONStorableFloat NewUpperAngleLimitStorable()
+        public static JSONStorableFloat NewUpperAngleLimitStorable(bool interactable = true)
         {
-            return new JSONStorableFloat("Upper limit <size=40>°</size>", 90f, -90f, 90f);
+            return new JSONStorableFloat(
+                "Upper limit <size=40>°</size>",
+                90f, -90f, 90f,
+                interactable: interactable
+            );
         }
 
-        public static JSONStorableFloat NewMinMainRigidityStorable()
+        public static JSONStorableFloat NewMinMainRigidityStorable(bool interactable = true)
         {
-            return new JSONStorableFloat("Main rigidity at lower limit", 0.005f, 0f, 0.100f);
+            return new JSONStorableFloat(
+                "Main rigidity at lower limit",
+                0.005f, 0f, 0.100f,
+                interactable: interactable
+            );
         }
 
-        public static JSONStorableFloat NewMaxMainRigidityStorable()
+        public static JSONStorableFloat NewMaxMainRigidityStorable(bool interactable = true)
         {
-            return new JSONStorableFloat("Main rigidity at upper limit", 0.025f, 0f, 0.100f);
+            return new JSONStorableFloat(
+                "Main rigidity at upper limit",
+                0.050f, 0f, 0.100f,
+                interactable: interactable
+            );
         }
 
-        public static JSONStorableFloat NewMinTipRigidityStorable()
+        public static JSONStorableFloat NewMinTipRigidityStorable(bool interactable = true)
         {
-            return new JSONStorableFloat("Tip rigidity at lower limit", 0.000f, 0f, 0.010f);
+            return new JSONStorableFloat(
+                "Tip rigidity at lower limit",
+                0.000f, 0f, 0.010f,
+                interactable: interactable
+            );
         }
 
-        public static JSONStorableFloat NewMaxTipRigidityStorable()
+        public static JSONStorableFloat NewMaxTipRigidityStorable(bool interactable = true)
         {
-            return new JSONStorableFloat("Tip rigidity at upper limit", 0.002f, 0f, 0.010f);
+            return new JSONStorableFloat(
+                "Tip rigidity at upper limit",
+                0.002f, 0f, 0.010f,
+                interactable: interactable
+            );
         }
 
-        public static JSONStorableFloat NewMinStyleClingStorable()
+        public static JSONStorableFloat NewMinStyleClingStorable(bool interactable = true)
         {
-            return new JSONStorableFloat("Style cling at lower limit", 0f, 0f, 1f);
+            return new JSONStorableFloat(
+                "Style cling at lower limit",
+                0f, 0f, 1f,
+                interactable: interactable
+            );
         }
 
-        public static JSONStorableFloat NewMaxStyleClingStorable()
+        public static JSONStorableFloat NewMaxStyleClingStorable(bool interactable = true)
         {
-            return new JSONStorableFloat("Style cling at upper limit", 0f, 0f, 1f);
+            return new JSONStorableFloat(
+                "Style cling at upper limit",
+                0f, 0f, 1f,
+                interactable: interactable
+            );
         }
     }
 }

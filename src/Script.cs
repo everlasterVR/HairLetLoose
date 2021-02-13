@@ -95,10 +95,11 @@ namespace HairLetLoose
             valuesUITextField.UItext.fontSize = 26;
             valuesUITextField.height = 255;
 
-            hairSimHandler.notificationsUIText = new JSONStorableString("logText", "");
+            hairSimHandler.notificationsUIText = new JSONStorableString("notificationsText", "<");
             UIDynamicTextField notificationsUITextField = CreateTextField(hairSimHandler.notificationsUIText, rightSide: true);
             notificationsUITextField.UItext.fontSize = 26;
             notificationsUITextField.height = 390;
+            hairSimHandler.UpdateNotifications(reset: true);
         }
 
         private void NewSlider(
