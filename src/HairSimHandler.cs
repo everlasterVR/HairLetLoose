@@ -225,14 +225,7 @@ namespace HairLetLoose
                 throw;
             }
 
-            // TODO set settingsInfoUIText from selected hair
-
-            //string settingInfo = "";
-            //if(settingInfo.Length == 0)
-            //{
-            //    settingInfo = "\nNone";
-            //}
-            //settingsInfoUIText.SetVal($"<b><size=30>Changes to hair physics on load</size></b>\n{settingInfo}");
+            settingsInfoUIText.SetVal($"\n<b><size=30>Changes to hair physics on load</size></b>\n{activeHairSim.settingInfo}");
         }
 
         private void UpdateAllPhysics()
@@ -248,7 +241,7 @@ namespace HairLetLoose
         private void UpdateValuesUIText(float tiltY)
         {
             int angleDegrees = Mathf.RoundToInt((tiltY * 180) - 90);
-            string text = $"<b><size=30>\nCurrent values</size></b>\n\n" +
+            string text = $"\n<b><size=30>Current values</size></b>\n\n" +
                 $"Angle: {angleDegrees}°";
 
             if(activeHairSims.ContainsKey(hairUISelect.val))

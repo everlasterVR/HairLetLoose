@@ -191,7 +191,7 @@ namespace HairLetLoose
                 maxMainRigidity.val = mainRigidity;
             }
             maxMainRigidity.defaultVal = maxMainRigidity.val;
-            minMainRigidity.val = maxMainRigidity.val / 10;
+            minMainRigidity.val = Calc.RoundToDecimals(maxMainRigidity.val / 10, 1000f);
 
             if(tipRigidity > maxTipRigidity.max)
             {
@@ -217,6 +217,11 @@ namespace HairLetLoose
             minStyleCling.val = maxStyleCling.val;
             minStyleCling.defaultVal = minStyleCling.val;
 
+            if(settingInfo.Length == 0)
+            {
+                settingInfo = "\nNone";
+            }
+
             UpdateUpperLimit(upperAngleLimit.val);
             UpdateLowerLimit(lowerAngleLimit.val);
         }
@@ -232,8 +237,8 @@ namespace HairLetLoose
 
         private void AdjustWeight()
         {
-            float adjustedWeight = Mathf.Clamp(weight, 1.350f, 1.650f);
             float originalWeight = Calc.RoundToDecimals(weight, 1000f);
+            float adjustedWeight = Mathf.Clamp(originalWeight, 1.350f, 1.650f);
             if(originalWeight != adjustedWeight)
             {
                 settingInfo = $"{settingInfo}\n- weight set to {adjustedWeight} (was {originalWeight})";
@@ -243,8 +248,8 @@ namespace HairLetLoose
 
         private void AdjustDrag()
         {
-            float adjustedDrag = Mathf.Clamp(drag, 0.050f, 0.150f);
             float originalDrag = Calc.RoundToDecimals(drag, 1000f);
+            float adjustedDrag = Mathf.Clamp(originalDrag, 0.050f, 0.150f);
             if(originalDrag != adjustedDrag)
             {
                 settingInfo = $"{settingInfo}\n- drag set to {adjustedDrag} (was {originalDrag})";
@@ -254,8 +259,8 @@ namespace HairLetLoose
 
         private void SetGravityToOne()
         {
-            float one = 1.000f;
             float originalGravity = Calc.RoundToDecimals(gravityMultiplier, 1000f);
+            float one = 1.000f;
             if(originalGravity != one)
             {
                 settingInfo = $"{settingInfo}\n- gravity multiplier set to {one} (was {originalGravity})";
@@ -324,19 +329,19 @@ namespace HairLetLoose
 
         private string MainRigidityStatus()
         {
-            return $"{Calc.RoundToDecimals(mainRigidityStorable.val, 1000f).ToString("0.000")}" +
+            return $"{Calc.RoundToDecimals(mainRigidityStorable.val, 1000f):0.000}" +
                 $"{MinOrMax(mainRigidityStorable, minMainRigidity, maxMainRigidity)}";
         }
 
         private string TipRigidityStatus()
         {
-            return $"{Calc.RoundToDecimals(tipRigidityStorable.val, 10000f).ToString("0.0000")}" +
+            return $"{Calc.RoundToDecimals(tipRigidityStorable.val, 10000f):0.0000}" +
                 $"{MinOrMax(tipRigidityStorable, minTipRigidity, maxTipRigidity)}";
         }
 
         private string ClingStatus()
         {
-            return $"{Calc.RoundToDecimals(clingStorable.val, 100f).ToString("0.00")}" +
+            return $"{Calc.RoundToDecimals(clingStorable.val, 100f):0.00}" +
                 $"{MinOrMax(clingStorable, minStyleCling, maxStyleCling)}";
         }
 

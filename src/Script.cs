@@ -85,19 +85,19 @@ namespace HairLetLoose
             UIDynamicTextField helpUITextField = CreateTextField(helpUIText, rightSide: true);
             helpUITextField.UItext.fontSize = 26;
             helpUITextField.height = 325;
-            helpUIText.SetVal($"<b><size=30>\nHow it works</size></b>\n\n" +
+            helpUIText.SetVal($"\n<b><size=30>How it works</size></b>\n\n" +
                 $"Hair is the least rigid at the lower limit angle, and the most rigid at the upper limit angle.\n\n" +
                 $"90° is upright, 0° is horizontal, -90° is upside down.");
-
-            hairSimHandler.settingsInfoUIText = new JSONStorableString("logText", "");
-            UIDynamicTextField logUITextField = CreateTextField(hairSimHandler.settingsInfoUIText, rightSide: true);
-            logUITextField.UItext.fontSize = 26;
-            logUITextField.height = 390;
 
             hairSimHandler.valuesUIText = new JSONStorableString("valuesText", "");
             UIDynamicTextField valuesUITextField = CreateTextField(hairSimHandler.valuesUIText, rightSide: true);
             valuesUITextField.UItext.fontSize = 26;
             valuesUITextField.height = 255;
+
+            hairSimHandler.settingsInfoUIText = new JSONStorableString("logText", "");
+            UIDynamicTextField logUITextField = CreateTextField(hairSimHandler.settingsInfoUIText, rightSide: true);
+            logUITextField.UItext.fontSize = 26;
+            logUITextField.height = 390;
         }
 
         private void NewSlider(
