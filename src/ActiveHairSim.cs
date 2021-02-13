@@ -374,6 +374,7 @@ namespace HairLetLoose
                 ["originalValues"] = originalValues,
             };
 
+            jc["enabled"].AsBool = enabled;
             jc["lowerAngleLimit"].AsFloat = lowerAngleLimit.val;
             jc["upperAngleLimit"].AsFloat = upperAngleLimit.val;
             jc["minMainRigidity"].AsFloat = minMainRigidity.val;
@@ -397,6 +398,11 @@ namespace HairLetLoose
             cling = originalValues["cling"].AsFloat;
 
             DisablePaintedRigidity();
+            enabled = jc["enabled"].AsBool;
+            if(!enabled)
+            {
+                RestoreOriginalPhysics();
+            }
             lowerAngleLimit.val = jc["lowerAngleLimit"].AsFloat;
             upperAngleLimit.val = jc["upperAngleLimit"].AsFloat;
             minMainRigidity.val = jc["minMainRigidity"].AsFloat;

@@ -77,7 +77,14 @@ namespace HairLetLoose
                 {
                     UIElementStore.UpdateToggleButtonText(current.enabled);
                 }
-                UpdateNotifications(current.TrackPhysics());
+                if(!current.enabled)
+                {
+                    UpdateNotifications(reset: true);
+                }
+                else
+                {
+                    UpdateNotifications(current.TrackPhysics());
+                }
             }
             else
             {
@@ -300,18 +307,30 @@ namespace HairLetLoose
             return array;
         }
 
-        public void RestoreFromJSON(JSONArray array)
+        public string GetSelectedUid()
         {
-            StartCoroutine(RestoreFromJSONInternal(array));
+            ActiveHairSim current = activeHairSims[hairUISelect.val];
+            if(current != null)
+            {
+                return current.parentInternalUid;
+            }
+
+            return "";
         }
 
-        private IEnumerator RestoreFromJSONInternal(JSONArray array)
+        public void RestoreFromJSON(string selected, JSONArray array)
+        {
+            StartCoroutine(RestoreFromJSONInternal(selected, array));
+        }
+
+        private IEnumerator RestoreFromJSONInternal(string selected, JSONArray array)
         {
             while(activeHairSims == null || checkCounter < 3)
             {
                 yield return null;
             }
 
+            string option = "";
             foreach(JSONClass jc in array)
             {
                 ActiveHairSim match = null;
@@ -321,11 +340,24 @@ namespace HairLetLoose
                     {
                         match = it.Value;
                     }
+                    if(it.Value.parentInternalUid == selected)
+                    {
+                        option = it.Key;
+                    }
                 }
                 if(match != null)
                 {
                     match.RestoreFromJSON(jc);
                 }
+            }
+
+            if(hairUISelect.val == option)
+            {
+                RefreshUI(option);
+            }
+            else
+            {
+                hairUISelect.val = option;
             }
         }
     }

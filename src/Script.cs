@@ -1,5 +1,6 @@
 ﻿using SimpleJSON;
 using System;
+using System.Collections;
 
 namespace HairLetLoose
 {
@@ -130,6 +131,7 @@ namespace HairLetLoose
         public override JSONClass GetJSON(bool includePhysical = true, bool includeAppearance = true, bool forceStore = false)
         {
             JSONClass jc = base.GetJSON(includePhysical, includeAppearance, forceStore);
+            jc["selected"] = hairSimHandler.GetSelectedUid();
             jc["hairSettings"] = hairSimHandler.Serialize();
             return jc;
         }
@@ -140,7 +142,7 @@ namespace HairLetLoose
 
             try
             {
-                StartCoroutine(RestoreFromJSONInternal(jc["hairSettings"].AsArray));
+                StartCoroutine(RestoreFromJSONInternal(jc["selected"].Value, jc["hairSettings"].AsArray));
             }
             catch(Exception e)
             {
@@ -148,14 +150,14 @@ namespace HairLetLoose
             }
         }
 
-        private IEnumerator RestoreFromJSONInternal(JSONArray hairSettings)
+        private IEnumerator RestoreFromJSONInternal(string selected, JSONArray hairSettings)
         {
             while (hairSimHandler == null)
             {
                 yield return null;
             }
 
-            hairSimHandler.RestoreFromJSON(hairSettings);
+            hairSimHandler.RestoreFromJSON(selected, hairSettings);
         }
     }
 }
