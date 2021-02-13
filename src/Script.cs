@@ -112,29 +112,6 @@ namespace HairLetLoose
             slider.valueFormat = valueFormat;
         }
 
-        public override JSONClass GetJSON(bool includePhysical = true, bool includeAppearance = true, bool forceStore = false)
-        {
-            JSONClass json = base.GetJSON(includePhysical, includeAppearance, forceStore);
-
-            //var animationJSON = new JSONClass
-            //{
-            //    { "Speed", animation.speed.ToString(CultureInfo.InvariantCulture) },
-            //    { "Master", animation.master ? "1" : "0" }
-            //};
-            //var clipsJSON = new JSONArray();
-            //foreach(var clip in animation.clips.Where(c => animationNameFilter == null || c.animationName == animationNameFilter))
-            //{
-            //    clipsJSON.Add(SerializeClip(clip));
-            //}
-            //animationJSON.Add("Clips", clipsJSON);
-            //return animationJSON;
-
-            //json["HairPhysics"] = serializer.SerializeAnimation(animation);
-            //json["Options"] = AtomAnimationSerializer.SerializeEditContext(animationEditContext);
-
-            return json;
-        }
-
         #endregion User interface
 
         public void OnDisable()
@@ -148,6 +125,37 @@ namespace HairLetLoose
         public void OnDestroy()
         {
             Destroy(gameObject.GetComponent<HairSimHandler>());
+        }
+
+        public override JSONClass GetJSON(bool includePhysical = true, bool includeAppearance = true, bool forceStore = false)
+        {
+            JSONClass jc = base.GetJSON(includePhysical, includeAppearance, forceStore);
+            jc["hairSettings"] = hairSimHandler.Serialize();
+            return jc;
+        }
+
+        public override void RestoreFromJSON(JSONClass jc, bool restorePhysical = true, bool restoreAppearance = true, JSONArray presetAtoms = null, bool setMissingToDefault = true)
+        {
+            base.RestoreFromJSON(jc, restorePhysical, restoreAppearance, presetAtoms, setMissingToDefault);
+
+            try
+            {
+                StartCoroutine(RestoreFromJSONInternal(jc["hairSettings"].AsArray));
+            }
+            catch(Exception e)
+            {
+                Log.Error($"Error restoring from JSON: {e}.\nReload plugin.");
+            }
+        }
+
+        private IEnumerator RestoreFromJSONInternal(JSONArray hairSettings)
+        {
+            while (hairSimHandler == null)
+            {
+                yield return null;
+            }
+
+            hairSimHandler.RestoreFromJSON(hairSettings);
         }
     }
 }

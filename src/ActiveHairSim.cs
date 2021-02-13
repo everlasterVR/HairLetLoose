@@ -1,9 +1,11 @@
-﻿using UnityEngine;
+﻿using SimpleJSON;
+using UnityEngine;
 
 namespace HairLetLoose
 {
     public class ActiveHairSim
     {
+        public readonly string parentInternalUid;
         private bool usePaintedRigidity;
         private float drag;
         private float gravityMultiplier;
@@ -32,8 +34,9 @@ namespace HairLetLoose
         public bool forceDisabled = false;
         public string notifications;
 
-        public ActiveHairSim(HairSimControl hairSim)
+        public ActiveHairSim(string parentInternalUid, HairSimControl hairSim)
         {
+            this.parentInternalUid = parentInternalUid;
             this.hairSim = hairSim;
 
             usePaintedRigidity = hairSim.GetBoolParamValue("usePaintedRigidity");
@@ -353,6 +356,55 @@ namespace HairLetLoose
             }
 
             return "";
+        }
+
+        public JSONClass Serialize()
+        {
+            JSONClass originalValues = new JSONClass();
+            originalValues["usePaintedRigidity"].AsBool = usePaintedRigidity;
+            originalValues["drag"].AsFloat = drag;
+            originalValues["gravityMultiplier"].AsFloat = gravityMultiplier;
+            originalValues["mainRigidity"].AsFloat = mainRigidity;
+            originalValues["tipRigidity"].AsFloat = tipRigidity;
+            originalValues["cling"].AsFloat = cling;
+
+            JSONClass jc = new JSONClass
+            {
+                ["id"] = parentInternalUid,
+                ["originalValues"] = originalValues,
+            };
+
+            jc["lowerAngleLimit"].AsFloat = lowerAngleLimit.val;
+            jc["upperAngleLimit"].AsFloat = upperAngleLimit.val;
+            jc["minMainRigidity"].AsFloat = minMainRigidity.val;
+            jc["maxMainRigidity"].AsFloat = maxMainRigidity.val;
+            jc["minTipRigidity"].AsFloat = minTipRigidity.val;
+            jc["maxTipRigidity"].AsFloat = maxTipRigidity.val;
+            jc["minStyleCling"].AsFloat = minStyleCling.val;
+            jc["maxStyleCling"].AsFloat = maxStyleCling.val;
+
+            return jc;
+        }
+
+        public void RestoreFromJSON(JSONClass jc)
+        {
+            JSONClass originalValues = jc["originalValues"].AsObject;
+            usePaintedRigidity = originalValues["usePaintedRigidity"].AsBool;
+            drag = originalValues["drag"].AsFloat;
+            gravityMultiplier = originalValues["gravityMultiplier"].AsFloat;
+            mainRigidity = originalValues["mainRigidity"].AsFloat;
+            tipRigidity = originalValues["tipRigidity"].AsFloat;
+            cling = originalValues["cling"].AsFloat;
+
+            DisablePaintedRigidity();
+            lowerAngleLimit.val = jc["lowerAngleLimit"].AsFloat;
+            upperAngleLimit.val = jc["upperAngleLimit"].AsFloat;
+            minMainRigidity.val = jc["minMainRigidity"].AsFloat;
+            maxMainRigidity.val = jc["maxMainRigidity"].AsFloat;
+            minTipRigidity.val = jc["minTipRigidity"].AsFloat;
+            maxTipRigidity.val = jc["maxTipRigidity"].AsFloat;
+            minStyleCling.val = jc["minStyleCling"].AsFloat;
+            maxStyleCling.val = jc["maxStyleCling"].AsFloat;
         }
     }
 }

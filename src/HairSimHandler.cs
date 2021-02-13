@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleJSON;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace HairLetLoose
         private float checkFrequency = 1f;
         private float timeSinceLastUpdate;
         private float updateFrequency = 1/30f;
+        private int checkCounter;
 
         private Dictionary<string, ActiveHairSim> activeHairSims;
 
@@ -26,6 +28,7 @@ namespace HairLetLoose
         public void OnEnable()
         {
             timeSinceLastUpdate = 0f;
+            checkCounter = 0;
             if(activeHairSims != null && activeHairSims.Count > 0)
             {
                 foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
@@ -124,6 +127,10 @@ namespace HairLetLoose
                 RefreshHairOptions();
                 MaybeAutoSelect();
                 InitActiveHairSims();
+                if (checkCounter < 3)
+                {
+                    checkCounter += 1;
+                }
             }
             catch(Exception)
             {
@@ -138,7 +145,7 @@ namespace HairLetLoose
                 if(it.active && it.name == "CustomHairItem" && !activeHairSims.ContainsKey(option))
                 {
                     HairSimControl hairSim = it.GetComponentInChildren<HairSimControl>();
-                    activeHairSims.Add(option, new ActiveHairSim(hairSim));
+                    activeHairSims.Add(option, new ActiveHairSim(it.internalUid, hairSim));
                 }
                 else if(!it.active && activeHairSims.ContainsKey(option))
                 {
@@ -280,6 +287,45 @@ namespace HairLetLoose
             {
                 it.Value.forceDisabled = true;
                 it.Value.RestoreOriginalPhysics();
+            }
+        }
+
+        public JSONArray Serialize()
+        {
+            JSONArray array = new JSONArray();
+            foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
+            {
+                array.Add(it.Value.Serialize());
+            }
+            return array;
+        }
+
+        public void RestoreFromJSON(JSONArray array)
+        {
+            StartCoroutine(RestoreFromJSONInternal(array));
+        }
+
+        private IEnumerator RestoreFromJSONInternal(JSONArray array)
+        {
+            while(activeHairSims == null || checkCounter < 3)
+            {
+                yield return null;
+            }
+
+            foreach(JSONClass jc in array)
+            {
+                ActiveHairSim match = null;
+                foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
+                {
+                    if(it.Value.parentInternalUid == jc["id"].Value)
+                    {
+                        match = it.Value;
+                    }
+                }
+                if(match != null)
+                {
+                    match.RestoreFromJSON(jc);
+                }
             }
         }
     }
