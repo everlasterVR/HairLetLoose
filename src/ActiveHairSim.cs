@@ -177,7 +177,7 @@ namespace HairLetLoose
             }
             else
             {
-                maxMainRigidity.val = mainRigidity;
+                maxMainRigidity.val = Calc.RoundToDecimals(mainRigidity, 1000f);
             }
             maxMainRigidity.defaultVal = maxMainRigidity.val;
             minMainRigidity.val = Calc.RoundToDecimals(maxMainRigidity.val / 10, 1000f);
@@ -188,7 +188,7 @@ namespace HairLetLoose
             }
             else
             {
-                maxTipRigidity.val = tipRigidity;
+                maxTipRigidity.val = Calc.RoundToDecimals(tipRigidity, 1000f);
             }
             maxTipRigidity.defaultVal = maxTipRigidity.val;
 
@@ -198,7 +198,7 @@ namespace HairLetLoose
             }
             else
             {
-                maxStyleCling.val = cling;
+                maxStyleCling.val = Calc.RoundToDecimals(cling, 1000f);
             }
             maxStyleCling.defaultVal = maxStyleCling.val;
             minStyleCling.val = maxStyleCling.val;
