@@ -6,7 +6,7 @@ namespace HairLetLoose
 {
     internal class Script : MVRScript
     {
-        private string pluginVersion = "0.0.0";
+        private JSONStorableString pluginVersion;
 
         private HairSimHandler hairSimHandler;
 
@@ -19,6 +19,9 @@ namespace HairLetLoose
                     Log.Error($"Plugin is for use with 'Person' atom, not '{containingAtom.type}'");
                     return;
                 }
+
+                pluginVersion = new JSONStorableString("version", "1.0.0");
+                RegisterString(pluginVersion);
 
                 if(gameObject.GetComponent<HairSimHandler>() == null)
                 {
@@ -52,7 +55,7 @@ namespace HairLetLoose
             UIDynamicTextField titleUITextField = CreateTextField(titleUIText);
             titleUITextField.UItext.fontSize = 30;
             titleUITextField.height = 100;
-            titleUIText.val = $"<b>{nameof(HairLetLoose)}</b>\n<size=26>v{pluginVersion}</size>";
+            titleUIText.val = $"<b>{nameof(HairLetLoose)}</b>\n<size=26>v{pluginVersion.val}</size>";
 
             UIElementStore.Init();
             NewSlider(UIElementStore.dummyLowerAngleLimit, valueFormat: "F0");
