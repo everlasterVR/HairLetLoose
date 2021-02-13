@@ -8,9 +8,6 @@ namespace HairLetLoose
 {
     public class HairSimHandler : MonoBehaviour
     {
-        private int waitCounter;
-        private int waitSeconds = 2;
-        private int waitLimit = 60;
         private float timeSinceLastCheck;
         private float checkFrequency = 1f;
         private float timeSinceLastUpdate;
@@ -28,7 +25,6 @@ namespace HairLetLoose
 
         public void OnEnable()
         {
-            waitCounter = 0;
             timeSinceLastUpdate = 0f;
             if(activeHairSims != null && activeHairSims.Count > 0)
             {
@@ -88,33 +84,6 @@ namespace HairLetLoose
             }
         }
 
-        // TODO decide if timeout is needed
-        private void CheckHairSimStatus()
-        {
-            //if(waitCounter >= waitLimit)
-            //{
-            //    string msg = "Select a hairstyle and reload the plugin.";
-            //    Log.Message($"No hair was selected in {waitLimit} seconds. {msg}");
-            //}
-            //else if(!loadHairSimInProgress)
-            //{
-            //    LetHairLoose();
-            //}
-
-            //if(hairSimOld != null && !hairSimOld.isActiveAndEnabled)
-            //{
-            //    RestoreOriginalPhysics();
-            //}
-            //if(hairSimOld == null || !hairSimOld.isActiveAndEnabled)
-            //{
-            //    NullifyCurrent();
-            //    yield return new WaitForSecondsRealtime(waitSeconds);
-            //    waitCounter += waitSeconds;
-            //    //loadHairSimInProgress = false;
-            //    yield break;
-            //}
-        }
-
         public void Update()
         {
             timeSinceLastCheck += Time.deltaTime;
@@ -168,13 +137,11 @@ namespace HairLetLoose
                 string option = $"{it.creatorName} | {it.displayName}";
                 if(it.active && it.name == "CustomHairItem" && !activeHairSims.ContainsKey(option))
                 {
-                    Log.Message($"{option} is active and not yet in activeHairSims. Adding new!");
                     HairSimControl hairSim = it.GetComponentInChildren<HairSimControl>();
                     activeHairSims.Add(option, new ActiveHairSim(hairSim));
                 }
                 else if(!it.active && activeHairSims.ContainsKey(option))
                 {
-                    Log.Message($"{option} is not active and still in activeHairSims. Restoring original physics and removing!");
                     activeHairSims[option].RestoreOriginalPhysics();
                     activeHairSims.Remove(option);
                 }
