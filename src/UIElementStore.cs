@@ -71,21 +71,16 @@ namespace HairLetLoose
 
         public static void UpdateToggleButtonText(bool? result)
         {
+            string label = "Disable for selected hairstyle";
             if(result.HasValue)
             {
-                if(result.Value)
+                if(!result.Value)
                 {
-                    toggleEnableButton.label = "Disable for selected hairstyle";
-                }
-                else
-                {
-                    toggleEnableButton.label = "Enable for selected hairstyle";
+                    label = "Enable for selected hairstyle";
                 }
             }
-            else
-            {
-                toggleEnableButton.label = "";
-            }
+
+            toggleEnableButton.label = label;
         }
 
         public static JSONStorableFloat NewLowerAngleLimitStorable()

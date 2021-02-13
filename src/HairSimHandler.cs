@@ -23,7 +23,7 @@ namespace HairLetLoose
 
         public JSONStorableStringChooser hairUISelect;
         public JSONStorableString valuesUIText;
-        public JSONStorableString settingsInfoUIText;
+        public JSONStorableString notificationsUIText;
         public string hairNameText;
 
         public void OnEnable()
@@ -56,7 +56,7 @@ namespace HairLetLoose
                 "Hair select",
                 activeHairSims.Keys.ToList(),
                 "",
-                "Selected hairstyle",
+                "Selected",
                 RefreshUI
             );
         }
@@ -78,10 +78,12 @@ namespace HairLetLoose
                 {
                     UIElementStore.UpdateToggleButtonText(current.enabled);
                 }
+                UpdateNotifications(current.TrackPhysics());
             }
             else
             {
                 UIElementStore.UpdateToggleButtonText(null);
+                UpdateNotifications(reset: true);
             }
         }
 
@@ -112,14 +114,6 @@ namespace HairLetLoose
             //}
         }
 
-        // TODO setval "" when no active hair selected
-        // TODO checkbox to select if plugin should remember hair settings during session?
-        //public void NullifyCurrent()
-        //{
-        //    settingsInfoUIText.SetVal("");
-        //    hairSimOld = null;
-        //}
-
         public void Update()
         {
             timeSinceLastCheck += Time.deltaTime;
@@ -127,6 +121,17 @@ namespace HairLetLoose
             {
                 timeSinceLastCheck -= checkFrequency;
                 StartCoroutine(RunCheck());
+                try
+                {
+                    ActiveHairSim current = activeHairSims[hairUISelect.val];
+                    if(current.enabled)
+                    {
+                        UpdateNotifications(current.TrackPhysics());
+                    }
+                }
+                catch(Exception e)
+                {
+                }
             }
 
             timeSinceLastUpdate += Time.deltaTime;
@@ -225,7 +230,20 @@ namespace HairLetLoose
                 throw;
             }
 
-            settingsInfoUIText.SetVal($"\n<b><size=30>Changes to hair physics on load</size></b>\n{activeHairSim.settingInfo}");
+            UpdateNotifications(activeHairSim.TrackPhysics());
+        }
+
+        private void UpdateNotifications(string changes = "", bool reset = false)
+        {
+            string header = $"\n<b><size=30>Physics settings info</size></b>";
+            if(reset)
+            {
+                notificationsUIText.val = header;
+            }
+            else
+            {
+                notificationsUIText.val = header + $"{(changes.Length > 0 ? changes : "\n\nHair physics settings OK.")}";
+            }
         }
 
         private void UpdateAllPhysics()
@@ -250,7 +268,7 @@ namespace HairLetLoose
                     $"{activeHairSims[hairUISelect.val].GetStatus()}";
             }
 
-            valuesUIText.SetVal(text);
+            valuesUIText.val = text;
         }
 
         public bool? ToggleEnableCurrent()
@@ -262,11 +280,13 @@ namespace HairLetLoose
                 {
                     activeHairSim.enabled = false;
                     activeHairSim.RestoreOriginalPhysics();
+                    UpdateNotifications(reset: true);
                 }
                 else
                 {
                     activeHairSim.enabled = true;
                     activeHairSim.ReLetLoose();
+                    UpdateNotifications(activeHairSim.TrackPhysics());
                 }
 
                 return activeHairSim.enabled;

@@ -51,7 +51,7 @@ namespace HairLetLoose
             UIDynamicTextField titleUITextField = CreateTextField(titleUIText);
             titleUITextField.UItext.fontSize = 30;
             titleUITextField.height = 100;
-            titleUIText.SetVal($"<b>{nameof(HairLetLoose)}</b>\n<size=26>v{pluginVersion}</size>");
+            titleUIText.val = $"<b>{nameof(HairLetLoose)}</b>\n<size=26>v{pluginVersion}</size>";
 
             UIElementStore.Init();
             NewSlider(UIElementStore.dummyLowerAngleLimit, valueFormat: "F0");
@@ -71,7 +71,7 @@ namespace HairLetLoose
             UIDynamicPopup hairUISelectPopup = CreatePopup(hairSimHandler.hairUISelect, rightSide: true);
             hairUISelectPopup.height = 100;
 
-            UIElementStore.toggleEnableButton = CreateButton("", rightSide: true);
+            UIElementStore.toggleEnableButton = CreateButton("Disable for selected hairstyle", rightSide: true);
             UIElementStore.toggleEnableButton.height = 50;
             UIElementStore.toggleEnableButton.button.onClick.AddListener(() => {
                 if(enabled)
@@ -80,24 +80,25 @@ namespace HairLetLoose
                     UIElementStore.UpdateToggleButtonText(result);
                 }
             });
+            UIElementStore.UpdateToggleButtonText(null);
 
             JSONStorableString helpUIText = new JSONStorableString("helpText", "");
             UIDynamicTextField helpUITextField = CreateTextField(helpUIText, rightSide: true);
             helpUITextField.UItext.fontSize = 26;
             helpUITextField.height = 325;
-            helpUIText.SetVal($"\n<b><size=30>How it works</size></b>\n\n" +
+            helpUIText.val = $"\n<b><size=30>How it works</size></b>\n\n" +
                 $"Hair is the least rigid at the lower limit angle, and the most rigid at the upper limit angle.\n\n" +
-                $"90° is upright, 0° is horizontal, -90° is upside down.");
+                $"90° is upright, 0° is horizontal, -90° is upside down.";
 
             hairSimHandler.valuesUIText = new JSONStorableString("valuesText", "");
             UIDynamicTextField valuesUITextField = CreateTextField(hairSimHandler.valuesUIText, rightSide: true);
             valuesUITextField.UItext.fontSize = 26;
             valuesUITextField.height = 255;
 
-            hairSimHandler.settingsInfoUIText = new JSONStorableString("logText", "");
-            UIDynamicTextField logUITextField = CreateTextField(hairSimHandler.settingsInfoUIText, rightSide: true);
-            logUITextField.UItext.fontSize = 26;
-            logUITextField.height = 390;
+            hairSimHandler.notificationsUIText = new JSONStorableString("logText", "");
+            UIDynamicTextField notificationsUITextField = CreateTextField(hairSimHandler.notificationsUIText, rightSide: true);
+            notificationsUITextField.UItext.fontSize = 26;
+            notificationsUITextField.height = 390;
         }
 
         private void NewSlider(

@@ -5,7 +5,6 @@ namespace HairLetLoose
     public class ActiveHairSim
     {
         private bool usePaintedRigidity;
-        private float weight;
         private float drag;
         private float gravityMultiplier;
         private float mainRigidity;
@@ -34,13 +33,13 @@ namespace HairLetLoose
         public bool wasLetLoose = false;
         public bool enabled = false;
         public bool forceDisabled = false;
-        public string settingInfo;
+        public string notifications;
 
         public ActiveHairSim(HairSimControl hairSim)
         {
             this.hairSim = hairSim;
+
             usePaintedRigidity = hairSim.GetBoolParamValue("usePaintedRigidity");
-            weight = hairSim.GetFloatParamValue("weight");
             drag = hairSim.GetFloatParamValue("drag");
             gravityMultiplier = hairSim.GetFloatParamValue("gravityMultiplier");
             mainRigidity = hairSim.GetFloatParamValue("mainRigidity");
@@ -173,17 +172,14 @@ namespace HairLetLoose
 
         public void LetLoose()
         {
+            notifications = "";
             wasLetLoose = true;
-            settingInfo = "";
-
             DisablePaintedRigidity();
-            AdjustWeight();
-            AdjustDrag();
-            SetGravityToOne();
+            CheckDrag(drag);
+            CheckGravityMultiplier(gravityMultiplier);
 
-            if(mainRigidityStorable.val > maxMainRigidity.max)
+            if(mainRigidity > maxMainRigidity.max)
             {
-                settingInfo = $"{settingInfo}\n- main rigidity set to {maxMainRigidity.max} (was {Calc.RoundToDecimals(mainRigidity, 1000f)})";
                 maxMainRigidity.val = maxMainRigidity.max;
             }
             else
@@ -195,7 +191,6 @@ namespace HairLetLoose
 
             if(tipRigidity > maxTipRigidity.max)
             {
-                settingInfo = $"{settingInfo}\n- tip rigidity set to {maxTipRigidity.max} (was {Calc.RoundToDecimals(tipRigidity, 1000f)})";
                 maxTipRigidity.val = maxTipRigidity.max;
             }
             else
@@ -206,7 +201,6 @@ namespace HairLetLoose
 
             if(cling > maxStyleCling.max)
             {
-                settingInfo = $"{settingInfo}\n- style cling set to {maxStyleCling.max} (was {Calc.RoundToDecimals(cling, 1000f)})";
                 maxStyleCling.val = maxStyleCling.max;
             }
             else
@@ -217,11 +211,6 @@ namespace HairLetLoose
             minStyleCling.val = maxStyleCling.val;
             minStyleCling.defaultVal = minStyleCling.val;
 
-            if(settingInfo.Length == 0)
-            {
-                settingInfo = "\nNone";
-            }
-
             UpdateUpperLimit(upperAngleLimit.val);
             UpdateLowerLimit(lowerAngleLimit.val);
         }
@@ -230,41 +219,34 @@ namespace HairLetLoose
         {
             if(usePaintedRigidity)
             {
-                settingInfo = $"{settingInfo}\n- disabled painted rigidity";
+                notifications = $"{notifications}\n\nPainted rigidity has been disabled for the current hairstyle.";
                 hairSim.SetBoolParamValue("usePaintedRigidity", false);
             }
         }
 
-        private void AdjustWeight()
+        private void CheckDrag(float drag)
         {
-            float originalWeight = Calc.RoundToDecimals(weight, 1000f);
-            float adjustedWeight = Mathf.Clamp(originalWeight, 1.350f, 1.650f);
-            if(originalWeight != adjustedWeight)
+            float min = 0.050f;
+            float max = 0.300f;
+            float original = Calc.RoundToDecimals(drag, 1000f);
+            float recommended = Mathf.Clamp(original, min, max);
+            if(original != recommended)
             {
-                settingInfo = $"{settingInfo}\n- weight set to {adjustedWeight} (was {originalWeight})";
-                hairSim.SetFloatParamValue("weight", adjustedWeight);
+                notifications = $"{notifications}\n\nDrag {original} seems unrealistically {(original > recommended ? "high" : "low")}. " +
+                    $"Recommended value: between {min} and {max}.";
             }
         }
 
-        private void AdjustDrag()
+        private void CheckGravityMultiplier(float gravityMultiplier)
         {
-            float originalDrag = Calc.RoundToDecimals(drag, 1000f);
-            float adjustedDrag = Mathf.Clamp(originalDrag, 0.050f, 0.150f);
-            if(originalDrag != adjustedDrag)
+            float min = 0.900f;
+            float max = 1.100f;
+            float original = Calc.RoundToDecimals(gravityMultiplier, 1000f);
+            float recommended = Mathf.Clamp(original, min, max);
+            if(original != recommended)
             {
-                settingInfo = $"{settingInfo}\n- drag set to {adjustedDrag} (was {originalDrag})";
-                hairSim.SetFloatParamValue("drag", adjustedDrag);
-            }
-        }
-
-        private void SetGravityToOne()
-        {
-            float originalGravity = Calc.RoundToDecimals(gravityMultiplier, 1000f);
-            float one = 1.000f;
-            if(originalGravity != one)
-            {
-                settingInfo = $"{settingInfo}\n- gravity multiplier set to {one} (was {originalGravity})";
-                hairSim.SetFloatParamValue("gravityMultiplier", one);
+                notifications = $"{notifications}\n\nGravity Multiplier {original} seems unrealistically {(original > recommended ? "high" : "low")}. " +
+                    $"Recommended value: 1.000";
             }
         }
 
@@ -301,9 +283,6 @@ namespace HairLetLoose
             }
 
             hairSim.SetBoolParamValue("usePaintedRigidity", usePaintedRigidity);
-            hairSim.SetFloatParamValue("weight", weight);
-            hairSim.SetFloatParamValue("drag", drag);
-            hairSim.SetFloatParamValue("gravityMultiplier", gravityMultiplier);
             hairSim.SetFloatParamValue("mainRigidity", mainRigidity);
             hairSim.SetFloatParamValue("tipRigidity", tipRigidity);
             hairSim.SetFloatParamValue("cling", cling);
@@ -311,10 +290,17 @@ namespace HairLetLoose
 
         public void ReLetLoose()
         {
+            notifications = "";
+            usePaintedRigidity = hairSim.GetBoolParamValue("usePaintedRigidity");
+            drag = hairSim.GetFloatParamValue("drag");
+            gravityMultiplier = hairSim.GetFloatParamValue("gravityMultiplier");
+            mainRigidity = hairSim.GetFloatParamValue("mainRigidity");
+            tipRigidity = hairSim.GetFloatParamValue("tipRigidity");
+            cling = hairSim.GetFloatParamValue("cling");
+
             DisablePaintedRigidity();
-            AdjustWeight();
-            AdjustDrag();
-            SetGravityToOne();
+            CheckDrag(drag);
+            CheckGravityMultiplier(gravityMultiplier);
             hairSim.SetFloatParamValue("mainRigidity", mainRigidityStorable.val);
             hairSim.SetFloatParamValue("tipRigidity", tipRigidityStorable.val);
             hairSim.SetFloatParamValue("cling", clingStorable.val);
@@ -322,42 +308,62 @@ namespace HairLetLoose
 
         public string GetStatus()
         {
-            return $"Main rigidity: {MainRigidityStatus()}\n" +
-               $"Tip rigidity: {TipRigidityStatus()}\n" +
-               $"Style cling: {ClingStatus()}";
+            if (enabled)
+            {
+                return $"Main rigidity: {MainRigidityStatus()}\n" +
+                    $"Tip rigidity: {TipRigidityStatus()}\n" +
+                    $"Style cling: {ClingStatus()}";
+            }
+
+            return "";
+        }
+
+        public string TrackPhysics()
+        {
+            notifications = "";
+            if(hairSim.GetBoolParamValue("usePaintedRigidity"))
+            {
+                notifications = $"{notifications}\n\n<b><color=#770000>Use Painted Rigidity must be disabled for this plugin to work!</color></b>";
+            }
+            CheckDrag(hairSim.GetFloatParamValue("drag"));
+            CheckGravityMultiplier(hairSim.GetFloatParamValue("gravityMultiplier"));
+            return notifications;
         }
 
         private string MainRigidityStatus()
         {
-            return $"{Calc.RoundToDecimals(mainRigidityStorable.val, 1000f):0.000}" +
-                $"{MinOrMax(mainRigidityStorable, minMainRigidity, maxMainRigidity)}";
+            float rounded = Calc.RoundToDecimals(mainRigidityStorable.val, 1000f);
+            return $"{rounded:0.000}" +
+                $"{MinOrMax(rounded, minMainRigidity, maxMainRigidity)}";
         }
 
         private string TipRigidityStatus()
         {
-            return $"{Calc.RoundToDecimals(tipRigidityStorable.val, 10000f):0.0000}" +
-                $"{MinOrMax(tipRigidityStorable, minTipRigidity, maxTipRigidity)}";
+            float rounded = Calc.RoundToDecimals(tipRigidityStorable.val, 10000f);
+            return $"{rounded:0.0000}" +
+                $"{MinOrMax(rounded, minTipRigidity, maxTipRigidity)}";
         }
 
         private string ClingStatus()
         {
-            return $"{Calc.RoundToDecimals(clingStorable.val, 100f):0.00}" +
-                $"{MinOrMax(clingStorable, minStyleCling, maxStyleCling)}";
+            float rounded = Calc.RoundToDecimals(clingStorable.val, 100f);
+            return $"{rounded:0.00}" +
+                $"{MinOrMax(rounded, minStyleCling, maxStyleCling)}";
         }
 
-        private string MinOrMax(JSONStorableFloat storable, JSONStorableFloat min, JSONStorableFloat max)
+        private string MinOrMax(float value, JSONStorableFloat min, JSONStorableFloat max)
         {
             if(min.val == max.val)
             {
                 return "";
             }
 
-            if(storable.val <= min.val)
+            if(value <= min.val)
             {
                 return " (min)";
             }
 
-            if(storable.val >= max.val)
+            if(value >= max.val)
             {
                 return " (max)";
             }
