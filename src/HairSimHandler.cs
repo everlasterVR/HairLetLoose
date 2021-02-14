@@ -136,9 +136,12 @@ namespace HairLetLoose
                 {
                     //Log.Message($"Adding option {optionId}");
                     HairSimControl hairSim = it.GetComponentInChildren<HairSimControl>();
-                    ActiveHairSim activeHairSim = new ActiveHairSim(it.internalUid, hairSim);
-                    activeHairSims.Add(optionKey, activeHairSim);
-                    activeHairSim.LetLoose();
+                    if(hairSim != null)
+                    {
+                        ActiveHairSim activeHairSim = new ActiveHairSim(it.internalUid, hairSim);
+                        activeHairSims.Add(optionKey, activeHairSim);
+                        activeHairSim.LetLoose();
+                    }
                 }
                 else if(!it.active && activeHairSims.ContainsKey(optionKey))
                 {

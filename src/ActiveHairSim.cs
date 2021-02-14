@@ -226,7 +226,7 @@ namespace HairLetLoose
             float recommended = Mathf.Clamp(original, min, max);
             if(original != recommended)
             {
-                notifications = $"{notifications}\n\nDrag {original} seems unrealistically {(original > recommended ? "high" : "low")}. " +
+                notifications = $"{notifications}\n\nDrag {original} seems {(original > recommended ? "high" : "low")}. " +
                     $"Recommended value: between {min} and {max}.";
             }
         }
@@ -239,7 +239,7 @@ namespace HairLetLoose
             float recommended = Mathf.Clamp(original, min, max);
             if(original != recommended)
             {
-                notifications = $"{notifications}\n\nGravity Multiplier {original} seems unrealistically {(original > recommended ? "high" : "low")}. " +
+                notifications = $"{notifications}\n\nGravity Multiplier {original} seems {(original > recommended ? "high" : "low")}. " +
                     $"Recommended value: 1.000";
             }
         }
