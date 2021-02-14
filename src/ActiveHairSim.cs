@@ -296,7 +296,7 @@ namespace HairLetLoose
 
         public string GetStatus()
         {
-            if (enabled)
+            if(enabled)
             {
                 return $"Main rigidity: {MainRigidityStatus()}\n" +
                     $"Tip rigidity: {TipRigidityStatus()}\n" +

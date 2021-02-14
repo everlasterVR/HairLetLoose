@@ -1,5 +1,4 @@
 ﻿using SimpleJSON;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -172,7 +171,7 @@ namespace HairLetLoose
 
         private void RefreshNotifications(ActiveHairSim selected = null)
         {
-            if (selected == null)
+            if(selected == null)
             {
                 if(!activeHairSims.ContainsKey(hairUISelect.val))
                 {
@@ -182,7 +181,7 @@ namespace HairLetLoose
 
                 selected = activeHairSims[hairUISelect.val];
             }
-            
+
             if(!selected.enabled)
             {
                 notificationsUIText.val = notificationsHeader;

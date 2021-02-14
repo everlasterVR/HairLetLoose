@@ -77,7 +77,8 @@ namespace HairLetLoose
 
             UIElementStore.toggleEnableButton = CreateButton("Disable for selected hairstyle", rightSide: true);
             UIElementStore.toggleEnableButton.height = 50;
-            UIElementStore.toggleEnableButton.button.onClick.AddListener(() => {
+            UIElementStore.toggleEnableButton.button.onClick.AddListener(() =>
+            {
                 if(enabled)
                 {
                     bool? result = hairSimHandler.ToggleEnableSelected();
@@ -155,7 +156,7 @@ namespace HairLetLoose
 
         private IEnumerator RestoreFromJSONInternal(string selected, JSONArray hairSettings)
         {
-            while (hairSimHandler == null)
+            while(hairSimHandler == null)
             {
                 yield return null;
             }
