@@ -4,13 +4,13 @@
    "packageName" : "HairLetLoose", 
    "standardReferenceVersionOption" : "Latest", 
    "scriptReferenceVersionOption" : "Exact", 
-   "description" : "v<Version>. ",
+   "description" : "v<Version>. Allows gravity to affect hair more realistically. The plugin controls hair rigidity and style cling based on which way the head is oriented.",
    "credits" : "", 
-   "instructions" : "", 
+   "instructions" : "Add HairLetLoose.cslist to a Person atom.",
    "promotionalLink" : "", 
-   "programVersion" : "1.20.77.3", 
+   "programVersion" : "1.20.77.8", 
    "contentList" : [ 
-      "Custom/Scripts/everlaster/HairLetLoose/HairLetLoose.cslist", 
+      "Custom/Scripts/everlaster/HairLetLoose/HairLetLoose.cslist",
       "Custom/Scripts/everlaster/HairLetLoose/src"
    ], 
    "dependencies" : { 
