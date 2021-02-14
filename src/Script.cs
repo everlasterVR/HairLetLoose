@@ -80,7 +80,7 @@ namespace HairLetLoose
             UIElementStore.toggleEnableButton.button.onClick.AddListener(() => {
                 if(enabled)
                 {
-                    bool? result = hairSimHandler.ToggleEnableCurrent();
+                    bool? result = hairSimHandler.ToggleEnableSelected();
                     UIElementStore.UpdateToggleButtonText(result);
                 }
             });
@@ -103,7 +103,6 @@ namespace HairLetLoose
             UIDynamicTextField notificationsUITextField = CreateTextField(hairSimHandler.notificationsUIText, rightSide: true);
             notificationsUITextField.UItext.fontSize = 26;
             notificationsUITextField.height = 390;
-            hairSimHandler.UpdateNotifications(reset: true);
         }
 
         private void NewSlider(
@@ -134,7 +133,7 @@ namespace HairLetLoose
         public override JSONClass GetJSON(bool includePhysical = true, bool includeAppearance = true, bool forceStore = false)
         {
             JSONClass jc = base.GetJSON(includePhysical, includeAppearance, forceStore);
-            jc["selected"] = hairSimHandler.GetSelectedUid();
+            jc["selected"] = hairSimHandler.GetSelectedControlInternalUid();
             jc["hairSettings"] = hairSimHandler.Serialize();
             return jc;
         }

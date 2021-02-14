@@ -9,6 +9,9 @@ namespace HairLetLoose
 {
     public class HairSimHandler : MonoBehaviour
     {
+        private string currentValuesHeader = $"\n<b><size=30>Current values</size></b>";
+        private string notificationsHeader = $"\n<b><size=30>Physics settings info</size></b>";
+
         private float timeSinceLastCheck;
         private float checkFrequency = 1f;
         private float timeSinceLastUpdate;
@@ -62,35 +65,28 @@ namespace HairLetLoose
 
         private void RefreshUI(string option)
         {
+            //Log.Message($"Calling RefreshUI");
             activeHairSims.ToList()
                 .Where(kvp => kvp.Key != option && kvp.Value.hasSliders).ToList()
                 .ForEach(kvp => kvp.Value.UnsetSliders());
 
             if(activeHairSims.ContainsKey(option))
             {
-                ActiveHairSim current = activeHairSims[option];
-                if(!current.hasSliders)
+                ActiveHairSim selected = activeHairSims[option];
+                if(!selected.hasSliders)
                 {
-                    current.InitSliders();
+                    selected.InitSliders();
                 }
-                if(current.wasLetLoose)
+                if(selected.wasLetLoose)
                 {
-                    UIElementStore.UpdateToggleButtonText(current.enabled);
-                }
-                if(!current.enabled)
-                {
-                    UpdateNotifications(reset: true);
-                }
-                else
-                {
-                    UpdateNotifications(current.TrackPhysics());
+                    UIElementStore.UpdateToggleButtonText(selected.enabled);
+                    RefreshNotifications(selected);
                 }
             }
             else
             {
                 UIElementStore.UpdateToggleButtonText(null);
                 UIElementStore.ApplyDummySliders();
-                UpdateNotifications(reset: true);
             }
         }
 
@@ -101,17 +97,6 @@ namespace HairLetLoose
             {
                 timeSinceLastCheck -= checkFrequency;
                 StartCoroutine(RunCheck());
-                try
-                {
-                    ActiveHairSim current = activeHairSims[hairUISelect.val];
-                    if(current.enabled)
-                    {
-                        UpdateNotifications(current.TrackPhysics());
-                    }
-                }
-                catch(Exception e)
-                {
-                }
             }
 
             timeSinceLastUpdate += Time.deltaTime;
@@ -124,23 +109,21 @@ namespace HairLetLoose
 
         private IEnumerator RunCheck()
         {
+            yield return new WaitForEndOfFrame();
+
             while(activeHairSims == null)
             {
                 yield return null;
             }
 
-            try
+            RefreshHairOptions();
+            MaybeAutoSelect();
+            hairUISelect.label = $"Selected{(hairUISelect.choices.Count > 1 ? $"\n(total: {activeHairSims.Count})" : "")}";
+            RefreshNotifications();
+
+            if(checkCounter < 3)
             {
-                RefreshHairOptions();
-                MaybeAutoSelect();
-                InitActiveHairSims();
-                if (checkCounter < 3)
-                {
-                    checkCounter += 1;
-                }
-            }
-            catch(Exception)
-            {
+                checkCounter += 1;
             }
         }
 
@@ -148,16 +131,20 @@ namespace HairLetLoose
         {
             foreach(DAZHairGroup it in hairItems)
             {
-                string option = $"{it.creatorName} | {it.displayName}";
-                if(it.active && it.name == "CustomHairItem" && !activeHairSims.ContainsKey(option))
+                string optionKey = $"{it.creatorName} | {it.displayName}";
+                if(it.active && it.name == "CustomHairItem" && !activeHairSims.ContainsKey(optionKey))
                 {
+                    //Log.Message($"Adding option {optionId}");
                     HairSimControl hairSim = it.GetComponentInChildren<HairSimControl>();
-                    activeHairSims.Add(option, new ActiveHairSim(it.internalUid, hairSim));
+                    ActiveHairSim activeHairSim = new ActiveHairSim(it.internalUid, hairSim);
+                    activeHairSims.Add(optionKey, activeHairSim);
+                    activeHairSim.LetLoose();
                 }
-                else if(!it.active && activeHairSims.ContainsKey(option))
+                else if(!it.active && activeHairSims.ContainsKey(optionKey))
                 {
-                    activeHairSims[option].RestoreOriginalPhysics();
-                    activeHairSims.Remove(option);
+                    //Log.Message($"Removing option {optionId} and restoring original physics");
+                    activeHairSims[optionKey].RestoreOriginalPhysics();
+                    activeHairSims.Remove(optionKey);
                 }
             }
         }
@@ -170,61 +157,37 @@ namespace HairLetLoose
             }
 
             hairUISelect.choices = activeHairSims.Keys.ToList();
-            if(activeHairSims.Count == 0)
+            if(hairUISelect.choices.Count == 0)
             {
                 hairUISelect.val = "None";
             }
-            else if(hairUISelect.val == "" || !activeHairSims.ContainsKey(hairUISelect.val))
+            else if(hairUISelect.val == "None" || !activeHairSims.ContainsKey(hairUISelect.val))
             {
                 hairUISelect.val = hairUISelect.choices.First();
             }
-            hairUISelect.label = $"Selected{(hairUISelect.choices.Count > 1 ? $"\n(total: {activeHairSims.Count})" : "")}";
         }
 
-        private void InitActiveHairSims()
+        private void RefreshNotifications(ActiveHairSim selected = null)
         {
-            foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
+            if (selected == null)
             {
-                ActiveHairSim activeHairSim = it.Value;
-                if(activeHairSim.wasLetLoose)
+                if(!activeHairSims.ContainsKey(hairUISelect.val))
                 {
+                    notificationsUIText.val = notificationsHeader;
                     return;
                 }
 
-                StartCoroutine(LetHairLoose(activeHairSim));
+                selected = activeHairSims[hairUISelect.val];
             }
-        }
-
-        private IEnumerator LetHairLoose(ActiveHairSim activeHairSim)
-        {
-            yield return new WaitForEndOfFrame();
-
-            try
+            
+            if(!selected.enabled)
             {
-                activeHairSim.enabled = true;
-                activeHairSim.LetLoose();
-                UIElementStore.UpdateToggleButtonText(true);
-            }
-            catch(Exception e)
-            {
-                Log.Error($"Exception caught: {e}", nameof(HairSimHandler));
-                throw;
+                notificationsUIText.val = notificationsHeader;
+                return;
             }
 
-            UpdateNotifications(activeHairSim.TrackPhysics());
-        }
-
-        public void UpdateNotifications(string changes = "", bool reset = false)
-        {
-            string header = $"\n<b><size=30>Physics settings info</size></b>";
-            if(reset)
-            {
-                notificationsUIText.val = header;
-            }
-            else
-            {
-                notificationsUIText.val = header + $"{(changes.Length > 0 ? changes : "\n\nHair physics settings OK.")}";
-            }
+            string changes = selected.TrackPhysics();
+            notificationsUIText.val = notificationsHeader + $"{(changes.Length > 0 ? changes : "\n\nHair physics settings OK.")}";
         }
 
         private void UpdateAllPhysics()
@@ -239,8 +202,7 @@ namespace HairLetLoose
 
         private void UpdateValuesUIText(float tiltY)
         {
-            string text = $"\n<b><size=30>Current values</size></b>\n\n" +
-                $"Angle: {Mathf.RoundToInt(tiltY)}°";
+            string text = currentValuesHeader + $"\n\nAngle: {Mathf.RoundToInt(tiltY)}°";
 
             if(activeHairSims.ContainsKey(hairUISelect.val))
             {
@@ -251,31 +213,27 @@ namespace HairLetLoose
             valuesUIText.val = text;
         }
 
-        public bool? ToggleEnableCurrent()
+        public bool? ToggleEnableSelected()
         {
-            try
+            if(!activeHairSims.ContainsKey(hairUISelect.val))
             {
-                ActiveHairSim activeHairSim = activeHairSims[hairUISelect.val];
-                if(activeHairSim.enabled)
-                {
-                    activeHairSim.enabled = false;
-                    activeHairSim.RestoreOriginalPhysics();
-                    UpdateNotifications(reset: true);
-                }
-                else
-                {
-                    activeHairSim.enabled = true;
-                    activeHairSim.ReLetLoose();
-                    UpdateNotifications(activeHairSim.TrackPhysics());
-                }
-
-                return activeHairSim.enabled;
-            }
-            catch(Exception)
-            {
+                return null;
             }
 
-            return null;
+            ActiveHairSim selected = activeHairSims[hairUISelect.val];
+            if(selected.enabled)
+            {
+                selected.enabled = false;
+                selected.RestoreOriginalPhysics();
+            }
+            else
+            {
+                selected.enabled = true;
+                selected.ReLetLoose();
+            }
+
+            RefreshNotifications(selected);
+            return selected.enabled;
         }
 
         public void OnDisable()
@@ -307,12 +265,12 @@ namespace HairLetLoose
             return array;
         }
 
-        public string GetSelectedUid()
+        public string GetSelectedControlInternalUid()
         {
-            ActiveHairSim current = activeHairSims[hairUISelect.val];
-            if(current != null)
+            ActiveHairSim selected = activeHairSims[hairUISelect.val];
+            if(selected != null)
             {
-                return current.parentInternalUid;
+                return selected.controlInternalUid;
             }
 
             return "";
@@ -330,19 +288,19 @@ namespace HairLetLoose
                 yield return null;
             }
 
-            string option = "";
+            string optionKey = "";
             foreach(JSONClass jc in array)
             {
                 ActiveHairSim match = null;
                 foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
                 {
-                    if(it.Value.parentInternalUid == jc["id"].Value)
+                    if(it.Value.controlInternalUid == jc["id"].Value)
                     {
                         match = it.Value;
                     }
-                    if(it.Value.parentInternalUid == selected)
+                    if(it.Value.controlInternalUid == selected)
                     {
-                        option = it.Key;
+                        optionKey = it.Key;
                     }
                 }
                 if(match != null)
@@ -351,13 +309,13 @@ namespace HairLetLoose
                 }
             }
 
-            if(hairUISelect.val == option)
+            if(hairUISelect.val == optionKey)
             {
-                RefreshUI(option);
+                RefreshUI(optionKey);
             }
             else
             {
-                hairUISelect.val = option;
+                hairUISelect.val = optionKey;
             }
         }
     }
