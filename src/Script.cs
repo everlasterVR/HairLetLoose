@@ -135,6 +135,7 @@ namespace HairLetLoose
             JSONClass jc = base.GetJSON(includePhysical, includeAppearance, forceStore);
             jc["selected"] = hairSimHandler.GetSelectedControlInternalUid();
             jc["hairSettings"] = hairSimHandler.Serialize();
+            needsStore = true;
             return jc;
         }
 
