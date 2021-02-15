@@ -13,6 +13,7 @@ namespace HairLetLoose
         private float tipRigidity;
         private float cling;
 
+        private bool paintedRigidityWasDisabled = false;
         private HairSimControl hairSim;
 
         private JSONStorableFloat mainRigidityStorable;
@@ -212,7 +213,7 @@ namespace HairLetLoose
         {
             if(usePaintedRigidity)
             {
-                notifications = $"{notifications}\n\nPainted rigidity has been disabled for the current hairstyle.";
+                paintedRigidityWasDisabled = true;
                 hairSim.SetBoolParamValue("usePaintedRigidity", false);
             }
         }
@@ -311,6 +312,10 @@ namespace HairLetLoose
             if(hairSim.GetBoolParamValue("usePaintedRigidity"))
             {
                 notifications = $"{notifications}\n\n<b><color=#770000>Use Painted Rigidity must be disabled for this plugin to work!</color></b>";
+            }
+            else if(paintedRigidityWasDisabled)
+            {
+                notifications = $"{notifications}\n\nPainted rigidity has been disabled for the selected hairstyle.";
             }
             CheckDrag(hairSim.GetFloatParamValue("drag"));
             CheckGravityMultiplier(hairSim.GetFloatParamValue("gravityMultiplier"));
