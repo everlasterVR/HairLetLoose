@@ -46,7 +46,12 @@ namespace HairLetLoose
         {
             head = containingAtom.GetStorableByID("head").transform;
             DAZCharacterSelector geometry = containingAtom.GetComponentInChildren<DAZCharacterSelector>();
-            hairItems = geometry.hairItems.ToList().Where(it => it.isLatestVersion).ToList();
+            hairItems = geometry.hairItems.ToList()
+                .Where(it => {
+                    HashSet<string> bodyHairTags = new HashSet<string> { "genital", "arms", "full body", "legs", "torso" };
+                    return it.isLatestVersion && !bodyHairTags.Overlaps(it.tagsArray);
+                }).ToList();
+
             activeHairSims = new Dictionary<string, ActiveHairSim>();
             StartCoroutine(RunCheck());
         }
