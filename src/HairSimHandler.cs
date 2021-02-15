@@ -20,7 +20,7 @@ namespace HairLetLoose
         private Dictionary<string, ActiveHairSim> activeHairSims;
 
         private Transform head;
-        private DAZHairGroup[] hairItems;
+        private List<DAZHairGroup> hairItems;
 
         public JSONStorableStringChooser hairUISelect;
         public JSONStorableString valuesUIText;
@@ -46,7 +46,7 @@ namespace HairLetLoose
         {
             head = containingAtom.GetStorableByID("head").transform;
             DAZCharacterSelector geometry = containingAtom.GetComponentInChildren<DAZCharacterSelector>();
-            hairItems = geometry.hairItems;
+            hairItems = geometry.hairItems.ToList().Where(it => it.isLatestVersion).ToList();
             activeHairSims = new Dictionary<string, ActiveHairSim>();
             StartCoroutine(RunCheck());
         }
@@ -55,23 +55,24 @@ namespace HairLetLoose
         {
             hairUISelect = new JSONStorableStringChooser(
                 "Hair select",
-                activeHairSims.Keys.ToList(),
+                activeHairSims.Keys.ToList(), //choices keys
+                activeHairSims.Values.ToList().Select(it => it.optionName).ToList(), //choices displaynames
                 "",
                 "Selected",
                 RefreshUI
             );
         }
 
-        private void RefreshUI(string option)
+        private void RefreshUI(string key)
         {
             //Log.Message($"Calling RefreshUI");
             activeHairSims.ToList()
-                .Where(kvp => kvp.Key != option && kvp.Value.hasSliders).ToList()
+                .Where(kvp => kvp.Key != key && kvp.Value.hasSliders).ToList()
                 .ForEach(kvp => kvp.Value.UnsetSliders());
 
-            if(activeHairSims.ContainsKey(option))
+            if(activeHairSims.ContainsKey(key))
             {
-                ActiveHairSim selected = activeHairSims[option];
+                ActiveHairSim selected = activeHairSims[key];
                 if(!selected.hasSliders)
                 {
                     selected.InitSliders();
@@ -128,25 +129,25 @@ namespace HairLetLoose
 
         private void RefreshHairOptions()
         {
-            foreach(DAZHairGroup it in hairItems)
+            foreach(DAZHairGroup hair in hairItems)
             {
-                string optionKey = $"{it.creatorName} | {it.displayName}";
-                if(it.active && it.name == "CustomHairItem" && !activeHairSims.ContainsKey(optionKey))
+                string uid = hair.uid;
+                if(hair.active && hair.name == "CustomHairItem" && !activeHairSims.ContainsKey(uid))
                 {
-                    //Log.Message($"Adding option {optionId}");
-                    HairSimControl hairSim = it.GetComponentInChildren<HairSimControl>();
+                    Log.Message($"Adding option for {uid}");
+                    HairSimControl hairSim = hair.GetComponentInChildren<HairSimControl>();
                     if(hairSim != null)
                     {
-                        ActiveHairSim activeHairSim = new ActiveHairSim(it.internalUid, hairSim);
-                        activeHairSims.Add(optionKey, activeHairSim);
+                        ActiveHairSim activeHairSim = new ActiveHairSim($"{hair.creatorName} | {hair.displayName}", hairSim);
+                        activeHairSims.Add(uid, activeHairSim);
                         activeHairSim.LetLoose();
                     }
                 }
-                else if(!it.active && activeHairSims.ContainsKey(optionKey))
+                else if(!hair.active && activeHairSims.ContainsKey(uid))
                 {
-                    //Log.Message($"Removing option {optionId} and restoring original physics");
-                    activeHairSims[optionKey].RestoreOriginalPhysics();
-                    activeHairSims.Remove(optionKey);
+                    Log.Message($"Removing option for {uid} and restoring original physics");
+                    activeHairSims[uid].RestoreOriginalPhysics();
+                    activeHairSims.Remove(uid);
                 }
             }
         }
@@ -159,11 +160,12 @@ namespace HairLetLoose
             }
 
             hairUISelect.choices = activeHairSims.Keys.ToList();
+            hairUISelect.displayChoices = activeHairSims.Values.ToList().Select(it => it.optionName).ToList();
             if(hairUISelect.choices.Count == 0)
             {
                 hairUISelect.val = "None";
             }
-            else if(hairUISelect.val == "None" || !activeHairSims.ContainsKey(hairUISelect.val))
+            else if(hairUISelect.val == "None" || !hairUISelect.choices.Contains(hairUISelect.val))
             {
                 hairUISelect.val = hairUISelect.choices.First();
             }
@@ -262,17 +264,19 @@ namespace HairLetLoose
             JSONArray array = new JSONArray();
             foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
             {
-                array.Add(it.Value.Serialize());
+                JSONClass jc = it.Value.Serialize();
+                jc["id"] = it.Key;
+                array.Add(jc);
             }
             return array;
         }
 
-        public string GetSelectedControlInternalUid()
+        public string GetSelectedControlUid()
         {
             ActiveHairSim selected = activeHairSims[hairUISelect.val];
             if(selected != null)
             {
-                return selected.controlInternalUid;
+                return selected.optionName;
             }
 
             return "";
@@ -290,19 +294,19 @@ namespace HairLetLoose
                 yield return null;
             }
 
-            string optionKey = "";
+            string optionName = "";
             foreach(JSONClass jc in array)
             {
                 ActiveHairSim match = null;
                 foreach(KeyValuePair<string, ActiveHairSim> it in activeHairSims)
                 {
-                    if(it.Value.controlInternalUid == jc["id"].Value)
+                    if(it.Key == jc["id"].Value)
                     {
                         match = it.Value;
                     }
-                    if(it.Value.controlInternalUid == selected)
+                    if(it.Key == selected)
                     {
-                        optionKey = it.Key;
+                        optionName = it.Value.optionName;
                     }
                 }
                 if(match != null)
@@ -311,13 +315,13 @@ namespace HairLetLoose
                 }
             }
 
-            if(hairUISelect.val == optionKey)
+            if(hairUISelect.val == optionName)
             {
-                RefreshUI(optionKey);
+                RefreshUI(optionName);
             }
             else
             {
-                hairUISelect.val = optionKey;
+                hairUISelect.val = optionName;
             }
         }
     }

@@ -134,7 +134,7 @@ namespace HairLetLoose
         public override JSONClass GetJSON(bool includePhysical = true, bool includeAppearance = true, bool forceStore = false)
         {
             JSONClass jc = base.GetJSON(includePhysical, includeAppearance, forceStore);
-            jc["selected"] = hairSimHandler.GetSelectedControlInternalUid();
+            jc["selected"] = hairSimHandler.GetSelectedControlUid();
             jc["hairSettings"] = hairSimHandler.Serialize();
             needsStore = true;
             return jc;

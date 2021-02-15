@@ -5,7 +5,7 @@ namespace HairLetLoose
 {
     public class ActiveHairSim
     {
-        public readonly string controlInternalUid;
+        public readonly string optionName;
         private bool usePaintedRigidity;
         private float drag;
         private float gravityMultiplier;
@@ -34,9 +34,9 @@ namespace HairLetLoose
         public bool forceDisabled = false;
         public string notifications;
 
-        public ActiveHairSim(string controlInternalUid, HairSimControl hairSim)
+        public ActiveHairSim(string optionName, HairSimControl hairSim)
         {
-            this.controlInternalUid = controlInternalUid;
+            this.optionName = optionName;
             this.hairSim = hairSim;
 
             usePaintedRigidity = hairSim.GetBoolParamValue("usePaintedRigidity");
@@ -168,7 +168,6 @@ namespace HairLetLoose
 
         public void LetLoose()
         {
-            //Log.Message($"{nameof(LetLoose)}: called for {controlInternalUid}");
             notifications = "";
             wasLetLoose = true;
             DisablePaintedRigidity();
@@ -371,7 +370,6 @@ namespace HairLetLoose
 
             JSONClass jc = new JSONClass
             {
-                ["id"] = controlInternalUid,
                 ["originalValues"] = originalValues,
             };
 
