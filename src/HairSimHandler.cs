@@ -134,7 +134,7 @@ namespace HairLetLoose
                 string uid = hair.uid;
                 if(hair.active && hair.name == "CustomHairItem" && !activeHairSims.ContainsKey(uid))
                 {
-                    Log.Message($"Adding option for {uid}");
+                    //Log.Message($"Adding option for {uid}");
                     HairSimControl hairSim = hair.GetComponentInChildren<HairSimControl>();
                     if(hairSim != null)
                     {
@@ -145,7 +145,7 @@ namespace HairLetLoose
                 }
                 else if(!hair.active && activeHairSims.ContainsKey(uid))
                 {
-                    Log.Message($"Removing option for {uid} and restoring original physics");
+                    //Log.Message($"Removing option for {uid} and restoring original physics");
                     activeHairSims[uid].RestoreOriginalPhysics();
                     activeHairSims.Remove(uid);
                 }
