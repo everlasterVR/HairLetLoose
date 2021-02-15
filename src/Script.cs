@@ -20,7 +20,7 @@ namespace HairLetLoose
                     return;
                 }
 
-                pluginVersion = new JSONStorableString("version", "1.0.0");
+                pluginVersion = new JSONStorableString("version", "1.0.1");
                 RegisterString(pluginVersion);
 
                 if(gameObject.GetComponent<HairSimHandler>() == null)
