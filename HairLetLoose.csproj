@@ -94,6 +94,7 @@
     <None Include=".gitignore" />
     <None Include="meta.json" />
     <None Include="README.md" />
+    <None Include="todo.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

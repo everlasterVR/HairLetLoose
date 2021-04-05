@@ -12,9 +12,9 @@ namespace HairLetLoose
         private string notificationsHeader = $"\n<b><size=30>Physics settings info</size></b>";
 
         private float timeSinceLastCheck;
-        private float checkFrequency = 1f;
+        private const float checkFrequency = 1f;
         private float timeSinceLastUpdate;
-        private float updateFrequency = 1/30f;
+        private const float updateFrequency = 1/30f;
         private int checkCounter;
 
         private Dictionary<string, ActiveHairSim> activeHairSims;
@@ -47,7 +47,8 @@ namespace HairLetLoose
             head = containingAtom.GetStorableByID("head").transform;
             DAZCharacterSelector geometry = containingAtom.GetComponentInChildren<DAZCharacterSelector>();
             hairItems = geometry.hairItems.ToList()
-                .Where(it => {
+                .Where(it =>
+                {
                     HashSet<string> bodyHairTags = new HashSet<string> { "genital", "arms", "full body", "legs", "torso" };
                     return it.isLatestVersion && !bodyHairTags.Overlaps(it.tagsArray);
                 }).ToList();

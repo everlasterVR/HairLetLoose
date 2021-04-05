@@ -2,7 +2,7 @@
 
 Lets gravity have more effect on hair when the head is tilted.
 
-Download latest .var release: https://hub.virtamate.com/resources/hairletloose.4742/ (NSFW)
+Releases: https://hub.virtamate.com/resources/hairletloose.4742/
 
 ## Contributing
 

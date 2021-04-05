@@ -6,8 +6,7 @@ namespace HairLetLoose
 {
     internal class Script : MVRScript
     {
-        private JSONStorableString pluginVersion;
-
+        public static JSONStorableString pluginVersion;
         private HairSimHandler hairSimHandler;
 
         public override void Init()
@@ -16,11 +15,11 @@ namespace HairLetLoose
             {
                 if(containingAtom.type != "Person")
                 {
-                    Log.Error($"Plugin is for use with 'Person' atom, not '{containingAtom.type}'");
+                    Log.Error($"Add to a Person atom, not {containingAtom.type}");
                     return;
                 }
 
-                pluginVersion = new JSONStorableString("version", "1.0.1");
+                pluginVersion = new JSONStorableString("version", "0.0.0");
                 RegisterString(pluginVersion);
 
                 if(gameObject.GetComponent<HairSimHandler>() == null)
@@ -34,7 +33,7 @@ namespace HairLetLoose
             }
             catch(Exception e)
             {
-                Log.Error($"Exception caught: {e}");
+                Log.Error($"{e}");
                 hairSimHandler.enabled = false;
             }
         }
