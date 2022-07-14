@@ -19,7 +19,7 @@ namespace HairLetLoose
                     return;
                 }
 
-                pluginVersion = new JSONStorableString("version", "0.0.0");
+                pluginVersion = new JSONStorableString("version", "v0.0.0");
                 RegisterString(pluginVersion);
 
                 if(gameObject.GetComponent<HairSimHandler>() == null)
@@ -54,7 +54,7 @@ namespace HairLetLoose
             UIDynamicTextField titleUITextField = CreateTextField(titleUIText);
             titleUITextField.UItext.fontSize = 30;
             titleUITextField.height = 100;
-            titleUIText.val = $"<b>{nameof(HairLetLoose)}</b>\n<size=26>v{pluginVersion.val}</size>";
+            titleUIText.val = $"<b>{nameof(HairLetLoose)}</b>\n<size=26>{pluginVersion.val}</size>";
 
             UIElementStore.Init();
             NewSlider(UIElementStore.dummyLowerAngleLimit, valueFormat: "F0");
